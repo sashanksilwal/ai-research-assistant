@@ -3,7 +3,7 @@
 Agent: Claude Code (model: Claude Opus 5.5), terminal CLI.
 Plan: [PLAN.md](PLAN.md) · Project: [README](../README.md)
 Format per entry: date · milestone · what I asked · what the agent did · problems / corrections · hand-edits (rough %) · lesson.
-Screenshots live in [screenshots/](screenshots/) (name `YYYY-MM-DD-<topic>-N.png`).
+Screenshots live in `docs/screenshots/` and are embedded below (name `YYYY-MM-DD-<topic>-N.png`).
 
 ---
 
