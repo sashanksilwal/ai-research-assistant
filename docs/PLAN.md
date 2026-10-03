@@ -77,7 +77,7 @@ SQLite (data/app.db) + data/pdfs/
 | Task | Req | Inputs/deps | Action | Output | Completion check |
 |---|---|---|---|---|---|
 | T0.1 Repo | S1 | GitHub account | git init in `~/Developer/ai-research-assistant`; `.gitignore` (`.env`, `data/`, `*.db`), `.env.example`, README stub; push | Pushed repo | `git check-ignore .env data/` matches both |
-| T0.2 Evidence log | S3 | — | Create `docs/agent-log.md` (date, prompt, agent action, problem, fix) + screenshots folder; screenshot the planning session | Log w/ entry 1 | Entry exists |
+| T0.2 Evidence log | S3 | — | Create [agent-log.md](agent-log.md) (date, prompt, agent action, problem, fix) + screenshots folder; screenshot the planning session | Log w/ entry 1 | Entry exists |
 | T0.3 Feasibility spike | A1–A6 | API key | Throwaway script: arXiv search → download 1 PDF → extract → 1 LLM call with full text | Console output | Prints title, >20k chars, LLM reply. **Replan if any step fails** |
 | T0.4 Skeleton | X1 | T0.1 | FastAPI serving `index.html` with 3 tabs, `/api/health`, SQLite init on startup | Running app | Page loads; `curl /api/health` ok; `app.db` created |
 
@@ -127,7 +127,7 @@ SQLite (data/app.db) + data/pdfs/
 ## 6. Ongoing reflection evidence (T0.2 → end)
 
 - **Screenshot immediately** when the agent is wrong — before scrolling or retrying (prompt, output, correction, result).
-- **End of each milestone**: 3–5 lines in `docs/agent-log.md` — what was asked, what worked, what was hand-edited (rough %), which prompting style worked.
+- **End of each milestone**: 3–5 lines in [agent-log.md](agent-log.md) — what was asked, what worked, what was hand-edited (rough %), which prompting style worked.
 - Backups: Claude Code transcripts under `~/.claude/projects/`; `/export` a session to recreate screenshots later.
 - Record how any PDF-processing skill was chosen/vetted (built-in vs. third-party) — material for Q5.
 
@@ -141,4 +141,4 @@ SQLite (data/app.db) + data/pdfs/
 
 - **Oct 2 — LLM provider changed to Gemini** (user decision during M0). Impact: SDK `anthropic` → `google-genai`; env var `GEMINI_API_KEY`; A3/A4 updated. No change to architecture or milestones.
 - **Oct 2 — T0.3 spike:** A1 (arXiv search), A2 (PDF download, 8.6 MB), A5 (68,792 chars from 18 pages) confirmed.
-- **Oct 2 — A3 partially failed:** `gemini-2.5-flash` returned `503 UNAVAILABLE (high demand)`. Listed models available to the key; switched default to `gemini-3.8-flash` (1M context). Retry: 18,362 prompt tokens for a full 18-page paper; answer named datasets absent from the abstract (CC12M, JourneyDB, GenEval, DPG-Bench) → R4 approach validated. Follow-up for M4: wrap LLM calls with a readable error on 503/429.
+- **Oct 2 — A3 partially failed** ([details + screenshots](agent-log.md#2026-10-02--m0-foundations)): `gemini-2.5-flash` returned `503 UNAVAILABLE (high demand)`. Listed models available to the key; switched default to `gemini-3.8-flash` (1M context). Retry: 18,362 prompt tokens for a full 18-page paper; answer named datasets absent from the abstract (CC12M, JourneyDB, GenEval, DPG-Bench) → R4 approach validated. Follow-up for M4: wrap LLM calls with a readable error on 503/429.

@@ -2,7 +2,7 @@
 
 CS593 HW1 — search arXiv papers, save them to a local library, upload PDFs, and use Gemini to summarize papers and answer questions about them.
 
-> Work in progress. See [`docs/PLAN.md`](docs/PLAN.md) for the plan.
+> Work in progress. See [`docs/PLAN.md`](docs/PLAN.md) for the plan and [`docs/agent-log.md`](docs/agent-log.md) for the coding-agent log.
 
 ## Quick start
 
