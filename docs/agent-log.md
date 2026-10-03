@@ -38,7 +38,10 @@ The 503 error, expanded:
 Start of the model list:
 ![Model list, part 1](screenshots/2026-10-02-model-list-1.png)
 
-_TODO: rest of model list (down to gemini-3.8-flash); the "we will use gemini" message._
+_TODO: rest of model list (down to gemini-3.8-flash)._
+
+My mid-task switch to Gemini:
+![Switch to Gemini](screenshots/2026-10-02-switch-to-gemini.png)
 
 ## 2026-10-02 · M1 Search ✓
 - **Asked:** "yes" (start M1 from [PLAN.md](PLAN.md)).
@@ -76,5 +79,7 @@ M1 search results (my check in my own browser):
 - **API checks (T2.1) ✓:** saved paper has 16,570 chars of text vs 1,247-char abstract; re-save returns the same id; PDF served from `/api/papers/{id}/pdf`; bad PDF URL → saved with `text_status=failed` and a reason; 3 papers still present after server restart.
 - **Hand-edits:** 0%.
 - **UI check (T2.2/T2.3) ✓ — by me:** saved papers appear in the Library tab with "Full text ready" badges (61,970 and 16,570 chars), Open → Paper tab works.
-  _TODO screenshot: Library tab (my capture went to the macOS temp folder again and was lost)._
+
+  Library with two saved papers and full-text badges:
+  ![M2 library](screenshots/2026-10-02-m2-library.png)
 - **My correction → making the lesson stick (Q5):** I told the agent to *note the error it had and missed* (the repeated f-string backslash bug). It added a repo `CLAUDE.md` — which Claude Code loads automatically every session — with a "known agent mistakes" section and a rule to import-check Python before restarting the server. Lesson: an agent only "remembers" a correction if it's written into the context it reads every time.
