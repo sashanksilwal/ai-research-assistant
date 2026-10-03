@@ -1,5 +1,6 @@
 """Gemini client: one place for model config, retries/fallbacks, and readable errors."""
 import asyncio
+import os
 
 from google import genai
 from google.genai import errors, types
@@ -17,10 +18,11 @@ class LLMError(Exception):
 def _get_client() -> genai.Client:
     global _client
     if _client is None:
-        try:
-            _client = genai.Client()  # reads GEMINI_API_KEY from the environment
-        except ValueError as e:
-            raise LLMError("GEMINI_API_KEY is not set. Add it to .env and restart the server.") from e
+        # Check first: constructing a client without a key leaves a half-built object
+        # whose cleanup logs an AttributeError traceback.
+        if not (os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")):
+            raise LLMError("GEMINI_API_KEY is not set. Add it to .env and restart the server.")
+        _client = genai.Client()  # reads GEMINI_API_KEY from the environment
     return _client
 
 
