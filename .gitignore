@@ -1,0 +1,16 @@
+# Secrets
+.env
+
+# Local data (SQLite DB, downloaded/uploaded PDFs)
+data/
+*.db
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
