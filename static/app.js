@@ -130,6 +130,7 @@ async function loadLibrary() {
       ? `${papers.length} saved paper${papers.length === 1 ? "" : "s"}`
       : "Your library is empty. Save papers from Search.";
     libraryList.replaceChildren(...papers.map(p => renderPaperCard(p, [
+      el("span", { class: "badge source" }, p.source === "upload" ? "Uploaded PDF" : "arXiv"),
       textBadge(p),
       el("button", { class: "small", onclick: () => openPaper(p.id) }, "Open"),
     ])));
@@ -152,5 +153,32 @@ async function openPaper(id) {
     detailContent.replaceChildren(el("p", { class: "muted" }, `Could not load paper: ${err.message}`));
   }
 }
+
+// ---------- upload ----------
+const uploadForm = document.getElementById("upload-form");
+const uploadInput = document.getElementById("upload-input");
+const uploadStatus = document.getElementById("upload-status");
+
+uploadForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const file = uploadInput.files[0];
+  if (!file) return;
+  const button = uploadForm.querySelector("button");
+  button.disabled = true;
+  uploadStatus.textContent = `Uploading “${file.name}” and extracting title, authors, year and abstract…`;
+  try {
+    const body = new FormData();
+    body.append("file", file);
+    const paper = await api("/api/upload", { method: "POST", body });
+    const notes = [paper.text_error, paper.metadata_warning].filter(Boolean);
+    uploadStatus.textContent = `Added “${paper.title}”.` + (notes.length ? ` Note: ${notes.join(" ")}` : "");
+    uploadForm.reset();
+    await loadLibrary();
+  } catch (err) {
+    uploadStatus.textContent = `Upload failed: ${err.message}`;
+  } finally {
+    button.disabled = false;
+  }
+});
 
 loadLibrary();  // populate savedIds so search results show "Saved ✓"

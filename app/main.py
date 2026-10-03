@@ -1,14 +1,15 @@
 import re
 import sqlite3
+import uuid
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, File, HTTPException, Query, UploadFile
 from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from . import arxiv, db, pdf
+from . import arxiv, db, metadata, pdf
 from .config import PDF_DIR
 
 
@@ -77,6 +78,46 @@ async def save_paper(paper: SearchResult):
     except sqlite3.IntegrityError:  # saved concurrently by another request
         return db.get_by_external_id(paper.external_id)
     return {**db.get_paper(paper_id), "text_error": text_error}
+
+
+MAX_UPLOAD_BYTES = 50 * 1024 * 1024
+
+
+@app.post("/api/upload")
+async def upload_paper(file: UploadFile = File(...)):
+    """Store an uploaded PDF, extract its text, and pull title/authors/year/abstract with Gemini."""
+    data = await file.read()
+    if not data.startswith(b"%PDF"):
+        raise HTTPException(status_code=400, detail="Please upload a PDF file.")
+    if len(data) > MAX_UPLOAD_BYTES:
+        raise HTTPException(status_code=413, detail="PDF is larger than 50 MB.")
+
+    filename = file.filename or "upload.pdf"
+    pdf_path = PDF_DIR / f"upload-{uuid.uuid4().hex}.pdf"
+    pdf_path.write_bytes(data)
+
+    try:
+        full_text = await run_in_threadpool(pdf.extract_text, data)
+        text_error = None
+    except pdf.PdfError as e:
+        full_text, text_error = None, str(e)
+
+    if full_text:
+        meta, meta_warning = await metadata.extract(full_text, data, filename)
+    else:
+        meta, meta_warning = metadata.fallback("", data, filename), None
+
+    paper_id = db.insert_paper(
+        source="upload",
+        title=meta["title"],
+        authors=meta["authors"],
+        year=meta["year"],
+        abstract=meta["abstract"],
+        pdf_path=str(pdf_path),
+        full_text=full_text,
+        text_status="ready" if full_text else "failed",
+    )
+    return {**db.get_paper(paper_id), "text_error": text_error, "metadata_warning": meta_warning}
 
 
 @app.get("/api/papers")

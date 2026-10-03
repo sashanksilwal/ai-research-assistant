@@ -135,6 +135,8 @@ SQLite (data/app.db) + data/pdfs/
 
 - Validation = the per-task curl/browser checks above; optional single `scripts/smoke.sh`. No test suite (HW2).
 - Deferred until M4 passes: RAG/embeddings, persistent chat history, metadata editing, tags, delete, OCR, React.
+- **Optional backlog (start only after M4 passes), in priority order:**
+  1. **Citation graph of the library** (requested Oct 2 during M3): for each saved paper, fetch its references from the Semantic Scholar API (by arXiv id; title match for uploads) and draw an edge when one library paper cites another; render with a small graph library in the Library tab. ~1–2 h. Completion check: two library papers where one cites the other show a connecting edge.
 - When an assumption in §4 fails: record it in the log, apply the fallback, and update this plan.
 
 ## Replan log

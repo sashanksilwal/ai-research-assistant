@@ -26,6 +26,12 @@
       <div id="search-results" class="cards"></div>
     </section>
     <section id="library" class="panel">
+      <form id="upload-form" class="upload-bar">
+        <label for="upload-input">Upload a paper (PDF):</label>
+        <input id="upload-input" type="file" accept="application/pdf,.pdf" required>
+        <button type="submit">Upload</button>
+        <span id="upload-status" class="muted"></span>
+      </form>
       <p id="library-status" class="muted"></p>
       <div id="library-list" class="cards"></div>
     </section>
