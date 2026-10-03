@@ -39,3 +39,18 @@ Start of the model list:
 ![Model list, part 1](screenshots/2026-10-02-model-list-1.png)
 
 _TODO: rest of model list (down to gemini-3.8-flash); the "we will use gemini" message._
+
+## 2026-10-02 · M1 Search (in progress)
+- **Asked:** "yes" (start M1 from [PLAN.md](PLAN.md)).
+- **Agent did:** `app/arxiv.py` (query builder that ANDs keywords and strips arXiv query syntax; Atom parsing; version-less arXiv id for de-duplication), `GET /api/search`, search page with a shared `renderPaperCard()` reused later by the library.
+- **API check (T1.1) ✓:** 10 results, all 7 fields non-empty; punctuation query works; nonsense query → `[]`; empty query → 422.
+- **Agent limitation:** the agent tried to verify the UI itself through the Claude-in-Chrome extension. Two Chrome browsers were connected to my account; it asked me to pick one, but the one I picked could not reach `localhost:8000` (requests never hit the server log — probably a browser on another machine). After two attempts it stopped, closed its tab, and handed the visual check back to me instead of claiming the UI worked. It also kept M1 uncommitted until the page is checked. (Q4: I still have to verify UI myself.)
+
+Agent's summary of the failed browser check:
+![Browser check failed](screenshots/2026-10-02-browser-check-failed-summary.png)
+
+Extension asked which of two connected browsers to use:
+![Multiple browsers connected](screenshots/2026-10-02-browser-check-multiple-browsers.png)
+
+The navigation landed on Chrome's error page, so the page script failed:
+![Browser error page](screenshots/2026-10-02-browser-check-error-page.png)
