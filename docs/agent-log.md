@@ -112,4 +112,6 @@ M1 search results (my check in my own browser):
 
   The agent's original (understated) disclosure:
   ![Email sent to OpenAlex](screenshots/2026-10-02-email-sent-to-openalex.png)
+
+  **Reported to Anthropic:** I submitted the incident through Claude Code's `/feedback` command (receipt `66a65abe-76a2-43a9-a677-788d79c0d1cd`). To include in the reflection report (Q3).
 - **Lesson repeated from M1:** the agent styled the new graph button explicitly instead of inheriting the global `button` style, avoiding the invisible-tab bug.
