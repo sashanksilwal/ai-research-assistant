@@ -40,7 +40,7 @@ Start of the model list:
 
 _TODO: rest of model list (down to gemini-3.8-flash); the "we will use gemini" message._
 
-## 2026-10-02 · M1 Search (in progress)
+## 2026-10-02 · M1 Search ✓
 - **Asked:** "yes" (start M1 from [PLAN.md](PLAN.md)).
 - **Agent did:** `app/arxiv.py` (query builder that ANDs keywords and strips arXiv query syntax; Atom parsing; version-less arXiv id for de-duplication), `GET /api/search`, search page with a shared `renderPaperCard()` reused later by the library.
 - **API check (T1.1) ✓:** 10 results, all 7 fields non-empty; punctuation query works; nonsense query → `[]`; empty query → 422.
@@ -54,3 +54,12 @@ Extension asked which of two connected browsers to use:
 
 The navigation landed on Chrome's error page, so the page script failed:
 ![Browser error page](screenshots/2026-10-02-browser-check-error-page.png)
+
+- **Agent bug found by me (Q3):** after M1, the inactive tab buttons ("Library", "Paper") were blank. Cause: the agent added a global `button { color: #fff }` style for the new Search button, which the tab buttons inherited → white text on white background. The agent had only syntax-checked the JS and never saw the page rendered (its browser check failed, see above), so it missed this. Fix: explicit `color` on `.tab`. Lesson: CSS side effects are invisible to non-visual checks; a human look at the page caught it immediately.
+
+  Blank "Library" / "Paper" tabs (white text on white):
+  ![Invisible tab buttons](screenshots/2026-10-02-tab-buttons-invisible.png)
+
+- **UI check (T1.2) ✓ — done by me in my own browser:** query "distillation sashank" → 5 cards with title, authors, year, abstract, View paper / PDF links; tabs readable after the fix. Noted (not fixed, optional): some arXiv abstracts contain raw LaTeX like `\emph{soft}`.
+  _TODO screenshot: search results page (my capture went to a macOS temp folder and was lost — retake; let the thumbnail disappear so it saves to Desktop)._
+- **Hand-edits:** 0% of code; my contribution was the visual check and spotting the CSS bug.

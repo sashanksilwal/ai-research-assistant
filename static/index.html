@@ -18,7 +18,12 @@
 
   <main>
     <section id="search" class="panel active">
-      <p class="muted">Search arXiv for papers. (M1)</p>
+      <form id="search-form" class="search-bar">
+        <input id="search-input" type="search" placeholder="Search arXiv by keywords or topic, e.g. retrieval augmented generation" required>
+        <button type="submit">Search</button>
+      </form>
+      <p id="search-status" class="muted"></p>
+      <div id="search-results" class="cards"></div>
     </section>
     <section id="library" class="panel">
       <p class="muted">Saved and uploaded papers. (M2/M3)</p>
