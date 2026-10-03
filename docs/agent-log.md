@@ -61,7 +61,6 @@ The navigation landed on Chrome's error page, so the page script failed:
   ![Invisible tab buttons](screenshots/2026-10-02-tab-buttons-invisible.png)
 
 - **UI check (T1.2) ✓ — done by me in my own browser:** query "distillation sashank" → 5 cards with title, authors, year, abstract, View paper / PDF links; tabs readable after the fix. Noted (not fixed, optional): some arXiv abstracts contain raw LaTeX like `\emph{soft}`.
-  _TODO screenshot: search results page (my capture went to a macOS temp folder and was lost — retake; let the thumbnail disappear so it saves to Desktop)._
 - **Hand-edits:** 0% of code; my contribution was the visual check and spotting the CSS bug.
 
 M1 search results (my check in my own browser):
