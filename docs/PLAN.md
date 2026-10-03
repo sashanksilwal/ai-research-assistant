@@ -7,7 +7,7 @@ Plan written Oct 2 with Claude Code (Opus 5.5) before implementation. App LLM: G
 
 | Question | Decision |
 |---|---|
-| LLM provider | ~~Claude~~ → **Gemini** (`google-genai` SDK), changed Oct 2 at user request; model via `GEMINI_MODEL` (default `gemini-2.5-flash`) |
+| LLM provider | ~~Claude~~ → **Gemini** (`google-genai` SDK), changed Oct 2 at user request; model via `GEMINI_MODEL` (default `gemini-3.8-flash`) |
 | Stack | FastAPI + vanilla JS + SQLite + arXiv API |
 | Deployment | Planned (timeboxed), even though the Submission list does not mention it |
 | Repo location | `~/Developer/ai-research-assistant` |
@@ -63,7 +63,7 @@ SQLite (data/app.db) + data/pdfs/
 | A1 | arXiv API reachable, no key (≤1 req/3s) | 503s / blocked from host | OpenAlex or Semantic Scholar |
 | A2 | arXiv PDFs downloadable server-side | Timeouts/blocks | Lazy download on first Summarize; or ask user to upload |
 | A3 | Gemini API key (AI Studio free tier) | Key missing / quota or rate limit hit | Switch model via `GEMINI_MODEL`; all calls go through one `complete()` function |
-| A4 | Full text fits Gemini context window (1M tokens on 2.5 Flash) | Context-length error | Lower cap → chunked map-reduce summary |
+| A4 | Full text fits Gemini context window (1M tokens on 3.8 Flash) | Context-length error | Lower cap → chunked map-reduce summary |
 | A5 | PyMuPDF extracts usable text | Garbled/empty text | Mark `failed`; OCR out of scope |
 | A6 | LLM returns valid metadata JSON | Parse failure | Retry once → PDF metadata/filename |
 | A7 | Host persists SQLite + PDFs | Data lost on redeploy | Attach volume (Railway/Fly); else document + demo locally |
@@ -140,4 +140,5 @@ SQLite (data/app.db) + data/pdfs/
 ## Replan log
 
 - **Oct 2 — LLM provider changed to Gemini** (user decision during M0). Impact: SDK `anthropic` → `google-genai`; env var `GEMINI_API_KEY`; A3/A4 updated. No change to architecture or milestones.
-- **Oct 2 — T0.3 spike:** A1 (arXiv search), A2 (PDF download, 8.6 MB), A5 (68,792 chars from 18 pages) confirmed. A3/A4 pending a Gemini key.
+- **Oct 2 — T0.3 spike:** A1 (arXiv search), A2 (PDF download, 8.6 MB), A5 (68,792 chars from 18 pages) confirmed.
+- **Oct 2 — A3 partially failed:** `gemini-2.5-flash` returned `503 UNAVAILABLE (high demand)`. Listed models available to the key; switched default to `gemini-3.8-flash` (1M context). Retry: 18,362 prompt tokens for a full 18-page paper; answer named datasets absent from the abstract (CC12M, JourneyDB, GenEval, DPG-Bench) → R4 approach validated. Follow-up for M4: wrap LLM calls with a readable error on 503/429.
