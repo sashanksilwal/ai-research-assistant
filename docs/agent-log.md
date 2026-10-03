@@ -38,7 +38,7 @@ The 503 error, expanded:
 Start of the model list:
 ![Model list, part 1](screenshots/2026-10-02-model-list-1.png)
 
-_TODO: rest of model list (down to gemini-3.8-flash)._
+_(The rest of the model list, down to `gemini-3.8-flash`, was not captured; the text above records the switch.)_
 
 My mid-task switch to Gemini:
 ![Switch to Gemini](screenshots/2026-10-02-switch-to-gemini.png)
