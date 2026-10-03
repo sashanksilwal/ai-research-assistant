@@ -32,7 +32,14 @@
         <button type="submit">Upload</button>
         <span id="upload-status" class="muted"></span>
       </form>
-      <p id="library-status" class="muted"></p>
+      <div class="library-header">
+        <p id="library-status" class="muted"></p>
+        <button id="graph-toggle" type="button" class="small">Show citation graph</button>
+      </div>
+      <section id="graph-panel" class="card" hidden>
+        <p id="graph-status" class="muted"></p>
+        <div id="graph"></div>
+      </section>
       <div id="library-list" class="cards"></div>
     </section>
     <section id="detail" class="panel">
@@ -45,6 +52,8 @@
   <!-- Markdown rendering for LLM output, sanitized before insertion -->
   <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
+  <!-- Citation graph rendering -->
+  <script src="https://cdn.jsdelivr.net/npm/vis-network@9.1.9/standalone/umd/vis-network.min.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

@@ -9,7 +9,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
-from . import analysis, arxiv, db, llm, metadata, pdf
+from . import analysis, arxiv, citations, db, llm, metadata, pdf
 from .config import PDF_DIR
 
 
@@ -123,6 +123,12 @@ async def upload_paper(file: UploadFile = File(...)):
 @app.get("/api/papers")
 def list_papers():
     return db.list_papers()
+
+
+@app.get("/api/graph")
+async def citation_graph():
+    """Library papers as nodes; an edge A -> B when A cites B (via OpenAlex)."""
+    return await citations.build_graph()
 
 
 @app.get("/api/papers/{paper_id}")

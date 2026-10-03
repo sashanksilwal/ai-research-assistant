@@ -34,9 +34,21 @@ def connect() -> sqlite3.Connection:
     return conn
 
 
+# Columns added after the first release; init_db adds any that an existing database lacks.
+ADDED_COLUMNS = {
+    "openalex_id": "TEXT",
+    "openalex_refs": "TEXT",     # JSON list of OpenAlex work ids this paper cites
+    "openalex_status": "TEXT",   # NULL = not looked up yet; 'ok' | 'not_found' | 'error'
+}
+
+
 def init_db() -> None:
     with connect() as conn:
         conn.executescript(SCHEMA)
+        existing = {row["name"] for row in conn.execute("PRAGMA table_info(papers)")}
+        for name, sql_type in ADDED_COLUMNS.items():
+            if name not in existing:
+                conn.execute(f"ALTER TABLE papers ADD COLUMN {name} {sql_type}")
 
 
 def _to_paper(row: sqlite3.Row) -> dict:
@@ -88,3 +100,27 @@ def get_full_text(paper_id: int) -> str | None:
 def set_summary(paper_id: int, summary: str) -> None:
     with connect() as conn:
         conn.execute("UPDATE papers SET summary = ? WHERE id = ?", (summary, paper_id))
+
+
+def papers_needing_openalex() -> list[dict]:
+    with connect() as conn:
+        rows = conn.execute(
+            "SELECT id, title FROM papers WHERE openalex_status IS NULL OR openalex_status = 'error'"
+        ).fetchall()
+    return [dict(r) for r in rows]
+
+
+def set_openalex(paper_id: int, status: str, openalex_id: str | None, refs: list[str]) -> None:
+    with connect() as conn:
+        conn.execute(
+            "UPDATE papers SET openalex_status = ?, openalex_id = ?, openalex_refs = ? WHERE id = ?",
+            (status, openalex_id, json.dumps(refs), paper_id),
+        )
+
+
+def papers_for_graph() -> list[dict]:
+    with connect() as conn:
+        rows = conn.execute(
+            "SELECT id, title, year, source, openalex_id, openalex_refs, openalex_status FROM papers ORDER BY id"
+        ).fetchall()
+    return [{**dict(r), "openalex_refs": json.loads(r["openalex_refs"] or "[]")} for r in rows]

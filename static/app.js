@@ -134,8 +134,61 @@ async function loadLibrary() {
       textBadge(p),
       el("button", { class: "small", onclick: () => openPaper(p.id) }, "Open"),
     ])));
+    if (!graphPanel.hidden) loadGraph();  // keep the graph in sync with the library
   } catch (err) {
     libraryStatus.textContent = `Could not load library: ${err.message}`;
+  }
+}
+
+// ---------- citation graph ----------
+const graphToggle = document.getElementById("graph-toggle");
+const graphPanel = document.getElementById("graph-panel");
+const graphStatus = document.getElementById("graph-status");
+const graphContainer = document.getElementById("graph");
+
+graphToggle.addEventListener("click", () => {
+  graphPanel.hidden = !graphPanel.hidden;
+  graphToggle.textContent = graphPanel.hidden ? "Show citation graph" : "Hide citation graph";
+  if (!graphPanel.hidden) loadGraph();
+});
+
+function shortTitle(title, max = 40) {
+  return title.length > max ? title.slice(0, max - 1) + "…" : title;
+}
+
+async function loadGraph() {
+  if (!window.vis) {
+    graphStatus.textContent = "Graph library failed to load (no internet connection to the CDN?).";
+    return;
+  }
+  graphStatus.textContent = "Looking up citations on OpenAlex… (first time can take a few seconds per paper)";
+  try {
+    const { nodes, edges } = await api("/api/graph");
+    const unmatched = nodes.filter(n => !n.matched).length;
+    graphStatus.textContent =
+      `${nodes.length} papers, ${edges.length} citation link${edges.length === 1 ? "" : "s"} between them. ` +
+      "Arrow A → B means A cites B. Click a paper to open it." +
+      (unmatched ? ` ${unmatched} paper(s) not found on OpenAlex (shown faded).` : "");
+
+    const data = {
+      nodes: nodes.map(n => ({
+        id: n.id,
+        label: `${shortTitle(n.title)}\n${n.year ?? ""}`,
+        title: n.title,  // full title on hover
+        color: n.matched ? undefined : { background: "#eee", border: "#ccc" },
+        font: { color: n.matched ? "#1f2328" : "#999" },
+      })),
+      edges: edges.map(e => ({ from: e.from, to: e.to, arrows: "to" })),
+    };
+    const network = new vis.Network(graphContainer, data, {
+      nodes: { shape: "box", margin: 8, widthConstraint: { maximum: 220 },
+               color: { background: "#ddf4ff", border: "#0969da" } },
+      edges: { color: "#8c959f", smooth: { type: "dynamic" } },
+      physics: { stabilization: true, barnesHut: { springLength: 180 } },
+    });
+    network.on("click", (params) => { if (params.nodes.length) openPaper(params.nodes[0]); });
+  } catch (err) {
+    graphStatus.textContent = `Could not build the citation graph: ${err.message}`;
   }
 }
 
