@@ -1,3 +1,4 @@
+import json
 import sqlite3
 
 from .config import DB_PATH
@@ -20,6 +21,12 @@ CREATE TABLE IF NOT EXISTS papers (
 );
 """
 
+# Columns returned to the frontend; full_text stays server-side (only its length is exposed).
+PUBLIC_COLUMNS = """
+    id, source, external_id, title, authors, year, abstract, url, pdf_path,
+    text_status, summary, created_at, length(full_text) AS text_chars
+"""
+
 
 def connect() -> sqlite3.Connection:
     conn = sqlite3.connect(DB_PATH)
@@ -30,3 +37,43 @@ def connect() -> sqlite3.Connection:
 def init_db() -> None:
     with connect() as conn:
         conn.executescript(SCHEMA)
+
+
+def _to_paper(row: sqlite3.Row) -> dict:
+    paper = dict(row)
+    paper["authors"] = json.loads(paper["authors"])
+    paper["pdf_url"] = f"/api/papers/{paper['id']}/pdf" if paper.pop("pdf_path") else None
+    return paper
+
+
+def list_papers() -> list[dict]:
+    with connect() as conn:
+        rows = conn.execute(f"SELECT {PUBLIC_COLUMNS} FROM papers ORDER BY id DESC").fetchall()
+    return [_to_paper(r) for r in rows]
+
+
+def get_paper(paper_id: int) -> dict | None:
+    with connect() as conn:
+        row = conn.execute(f"SELECT {PUBLIC_COLUMNS} FROM papers WHERE id = ?", (paper_id,)).fetchone()
+    return _to_paper(row) if row else None
+
+
+def get_by_external_id(external_id: str) -> dict | None:
+    with connect() as conn:
+        row = conn.execute(f"SELECT {PUBLIC_COLUMNS} FROM papers WHERE external_id = ?", (external_id,)).fetchone()
+    return _to_paper(row) if row else None
+
+
+def get_pdf_path(paper_id: int) -> str | None:
+    with connect() as conn:
+        row = conn.execute("SELECT pdf_path FROM papers WHERE id = ?", (paper_id,)).fetchone()
+    return row["pdf_path"] if row else None
+
+
+def insert_paper(**fields) -> int:
+    fields["authors"] = json.dumps(fields.get("authors", []))
+    cols = ", ".join(fields)
+    marks = ", ".join("?" for _ in fields)
+    with connect() as conn:
+        cur = conn.execute(f"INSERT INTO papers ({cols}) VALUES ({marks})", tuple(fields.values()))
+    return cur.lastrowid

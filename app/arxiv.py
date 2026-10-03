@@ -12,10 +12,19 @@ class ArxivError(Exception):
     pass
 
 
+# arXiv's index drops stopwords, so ANDing one in ("all:is") matches nothing.
+STOPWORDS = {
+    "a", "an", "and", "are", "as", "at", "be", "by", "for", "from", "how", "in", "is", "it",
+    "of", "on", "or", "that", "the", "this", "to", "was", "what", "when", "which", "with",
+    "you", "your", "all", "we", "can", "do", "does", "not", "no", "via", "using",
+}
+
+
 def _build_query(text: str) -> str:
     # AND the words together across all fields; drop characters that are arXiv query syntax.
     words = re.sub(r"[^\w\s-]", " ", text).split()
-    return " AND ".join(f"all:{w}" for w in words)
+    keywords = [w for w in words if w.lower() not in STOPWORDS] or words
+    return " AND ".join(f"all:{w}" for w in keywords)
 
 
 def _clean(s: str | None) -> str:

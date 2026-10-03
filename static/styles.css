@@ -31,3 +31,9 @@ button:disabled { opacity: .6; cursor: default; }
 .abstract.clamped { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 .actions { display: flex; gap: 12px; align-items: center; font-size: 14px; }
 .actions a { color: var(--accent); }
+
+/* library */
+button.small { padding: 4px 12px; font-size: 13px; }
+.badge { padding: 2px 8px; border-radius: 10px; font-size: 12px; }
+.badge.ok { background: #dafbe1; color: #116329; }
+.badge.warn { background: #fff8c5; color: #7d4e00; }

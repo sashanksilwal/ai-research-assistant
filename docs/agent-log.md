@@ -63,3 +63,19 @@ The navigation landed on Chrome's error page, so the page script failed:
 - **UI check (T1.2) ✓ — done by me in my own browser:** query "distillation sashank" → 5 cards with title, authors, year, abstract, View paper / PDF links; tabs readable after the fix. Noted (not fixed, optional): some arXiv abstracts contain raw LaTeX like `\emph{soft}`.
   _TODO screenshot: search results page (my capture went to a macOS temp folder and was lost — retake; let the thumbnail disappear so it saves to Desktop)._
 - **Hand-edits:** 0% of code; my contribution was the visual check and spotting the CSS bug.
+
+M1 search results (my check in my own browser):
+![M1 search results](screenshots/2026-10-02-m1-search-results.png)
+
+## 2026-10-02 · M2 Library ✓
+- **Asked:** continue to M2 (save → library → detail).
+- **Agent did:** `app/pdf.py` (download + text extraction, rejects non-PDF responses and text-less scans), `POST /api/papers` (dedupes on arXiv id, downloads the PDF, stores full text), `GET /api/papers`, `GET /api/papers/{id}`, `GET /api/papers/{id}/pdf`; Save button on search cards, Library tab with a "full text ready / unavailable" badge, Paper tab.
+- **Bugs during M2, all caught by the completion checks before I saw the UI:**
+  1. **Repeated mistake:** server failed to start — `SyntaxError: f-string expression part cannot include a backslash` (a regex `\w` inside an f-string; not allowed before Python 3.12). The agent had made *the same mistake* earlier in the status-line script. It only noticed because every test request failed; it then read the server log. Lesson: the agent doesn't learn within a session unless the lesson is written down.
+  2. **Search bug (pre-existing from M1):** `attention is all you need` returned **0 results**. Agent tested raw arXiv queries and confirmed ANDing stopwords (`all:is`) matches nothing. Fix: drop stopwords from the query. My M1 check had used keyword-only queries, so it never exercised this.
+  3. **Data quirk:** one saved paper reported 6,783 chars for a 21-page PDF. Agent compared Python vs SQLite lengths: full text (61,973 chars) was stored, but the PDF contained NUL characters and SQLite's `length()` stops at the first one. Fix: strip NULs at extraction; repaired the stored row.
+- **API checks (T2.1) ✓:** saved paper has 16,570 chars of text vs 1,247-char abstract; re-save returns the same id; PDF served from `/api/papers/{id}/pdf`; bad PDF URL → saved with `text_status=failed` and a reason; 3 papers still present after server restart.
+- **Hand-edits:** 0%.
+- **UI check (T2.2/T2.3) ✓ — by me:** saved papers appear in the Library tab with "Full text ready" badges (61,970 and 16,570 chars), Open → Paper tab works.
+  _TODO screenshot: Library tab (my capture went to the macOS temp folder again and was lost)._
+- **My correction → making the lesson stick (Q5):** I told the agent to *note the error it had and missed* (the repeated f-string backslash bug). It added a repo `CLAUDE.md` — which Claude Code loads automatically every session — with a "known agent mistakes" section and a rule to import-check Python before restarting the server. Lesson: an agent only "remembers" a correction if it's written into the context it reads every time.
