@@ -7,9 +7,9 @@ from fastapi import FastAPI, File, HTTPException, Query, UploadFile
 from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
-from . import arxiv, db, metadata, pdf
+from . import analysis, arxiv, db, llm, metadata, pdf
 from .config import PDF_DIR
 
 
@@ -139,6 +139,49 @@ def get_paper_pdf(paper_id: int):
     if not path:
         raise HTTPException(status_code=404, detail="No PDF stored for this paper")
     return FileResponse(path, media_type="application/pdf")
+
+
+def _require_full_text(paper_id: int) -> str:
+    paper = db.get_paper(paper_id)
+    if not paper:
+        raise HTTPException(status_code=404, detail="Paper not found")
+    text = db.get_full_text(paper_id)
+    if paper["text_status"] != "ready" or not text:
+        raise HTTPException(
+            status_code=409,
+            detail="This paper's full text is unavailable, so it can't be summarized or questioned. "
+            "Upload the PDF to add the full text.",
+        )
+    return text
+
+
+@app.post("/api/papers/{paper_id}/summary")
+async def summarize_paper(paper_id: int, refresh: bool = False):
+    """Summarize from the paper's full text; cached in the DB unless refresh=true."""
+    text = _require_full_text(paper_id)
+    cached = db.get_paper(paper_id)["summary"]
+    if cached and not refresh:
+        return {"summary": cached, "cached": True, "truncated": len(text) > analysis.MAX_TEXT_CHARS}
+    try:
+        summary, truncated = await analysis.summarize(text)
+    except llm.LLMError as e:
+        raise HTTPException(status_code=503, detail=str(e))
+    db.set_summary(paper_id, summary)
+    return {"summary": summary, "cached": False, "truncated": truncated}
+
+
+class Question(BaseModel):
+    question: str = Field(..., min_length=1, max_length=1000)
+
+
+@app.post("/api/papers/{paper_id}/ask")
+async def ask_paper(paper_id: int, body: Question):
+    text = _require_full_text(paper_id)
+    try:
+        reply, truncated = await analysis.answer(text, body.question.strip())
+    except llm.LLMError as e:
+        raise HTTPException(status_code=503, detail=str(e))
+    return {"question": body.question, "answer": reply, "truncated": truncated}
 
 
 # Mounted last so /api/* routes take precedence.

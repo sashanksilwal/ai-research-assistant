@@ -77,3 +77,14 @@ def insert_paper(**fields) -> int:
     with connect() as conn:
         cur = conn.execute(f"INSERT INTO papers ({cols}) VALUES ({marks})", tuple(fields.values()))
     return cur.lastrowid
+
+
+def get_full_text(paper_id: int) -> str | None:
+    with connect() as conn:
+        row = conn.execute("SELECT full_text FROM papers WHERE id = ?", (paper_id,)).fetchone()
+    return row["full_text"] if row else None
+
+
+def set_summary(paper_id: int, summary: str) -> None:
+    with connect() as conn:
+        conn.execute("UPDATE papers SET summary = ? WHERE id = ?", (summary, paper_id))

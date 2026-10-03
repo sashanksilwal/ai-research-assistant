@@ -139,16 +139,96 @@ async function loadLibrary() {
   }
 }
 
-// ---------- paper detail ----------
+// ---------- paper detail: summary + Q&A ----------
+const EXAMPLE_QUESTIONS = [
+  "What problem does this paper address?",
+  "What is the main idea of the proposed approach?",
+  "What datasets are used?",
+  "What are the major limitations?",
+  "How does this method compare with the baselines?",
+];
+
+// LLM output is Markdown; render it, but sanitize first. Falls back to plain text if the CDN libs didn't load.
+function markdown(text) {
+  const node = el("div", { class: "markdown" });
+  if (window.marked && window.DOMPurify) node.innerHTML = DOMPurify.sanitize(marked.parse(text));
+  else node.textContent = text;
+  return node;
+}
+
+const TRUNCATED_NOTE = "Note: this paper is very long, so only the first ~300,000 characters were sent to the model.";
+
+function summarySection(paper) {
+  const body = el("div", {}, paper.summary ? markdown(paper.summary) : el("p", { class: "muted" }, "No summary yet."));
+  const status = el("p", { class: "muted" });
+  const button = el("button", {}, paper.summary ? "Regenerate summary" : "Summarize with Gemini");
+
+  button.addEventListener("click", async () => {
+    button.disabled = true;
+    status.textContent = "Generating summary from the full paper… (can take up to ~30 s)";
+    try {
+      const refresh = paper.summary ? "?refresh=true" : "";
+      const res = await api(`/api/papers/${paper.id}/summary${refresh}`, { method: "POST" });
+      paper.summary = res.summary;
+      body.replaceChildren(markdown(res.summary));
+      button.textContent = "Regenerate summary";
+      status.textContent = res.truncated ? TRUNCATED_NOTE : "";
+    } catch (err) {
+      status.textContent = `Summary failed: ${err.message}`;
+    } finally {
+      button.disabled = false;
+    }
+  });
+
+  return el("section", { class: "card" }, el("h3", {}, "Summary"), button, status, body);
+}
+
+function qaSection(paper) {
+  const input = el("textarea", { rows: "2", placeholder: "Ask a question about this paper…", maxlength: "1000" });
+  const askButton = el("button", { type: "submit" }, "Ask");
+  const history = el("div", { class: "qa-history" });
+
+  async function ask(question) {
+    question = question.trim();
+    if (!question) return;
+    askButton.disabled = true;
+    const answerNode = el("div", { class: "muted" }, "Thinking…");
+    history.prepend(el("div", { class: "qa-item" }, el("p", { class: "question" }, question), answerNode));
+    try {
+      const res = await api(`/api/papers/${paper.id}/ask`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question }),
+      });
+      answerNode.replaceWith(markdown(res.answer), ...(res.truncated ? [el("p", { class: "muted" }, TRUNCATED_NOTE)] : []));
+    } catch (err) {
+      answerNode.textContent = `Could not answer: ${err.message}`;
+    } finally {
+      askButton.disabled = false;
+    }
+  }
+
+  const form = el("form", { class: "qa-form" }, input, askButton);
+  form.addEventListener("submit", (e) => { e.preventDefault(); ask(input.value); input.value = ""; });
+  input.addEventListener("keydown", (e) => {  // Enter sends, Shift+Enter adds a newline
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); form.requestSubmit(); }
+  });
+
+  const examples = el("div", { class: "examples" },
+    ...EXAMPLE_QUESTIONS.map(q => el("button", { type: "button", class: "chip", onclick: () => ask(q) }, q)));
+
+  return el("section", { class: "card" }, el("h3", {}, "Ask about this paper"), examples, form, history);
+}
+
 async function openPaper(id) {
   showTab("detail");
   detailContent.replaceChildren(el("p", { class: "muted" }, "Loading…"));
   try {
     const paper = await api(`/api/papers/${id}`);
-    detailContent.replaceChildren(
-      renderPaperCard(paper, [textBadge(paper)]),
-      el("p", { class: "muted" }, "Summary and Q&A coming in M4."),
-    );
+    const sections = paper.text_status === "ready"
+      ? [summarySection(paper), qaSection(paper)]
+      : [el("p", { class: "muted" }, "This paper's full text is unavailable, so it can't be summarized or questioned. Upload its PDF in the Library tab.")];
+    detailContent.replaceChildren(el("div", { class: "cards" }, renderPaperCard(paper, [textBadge(paper)]), ...sections));
   } catch (err) {
     detailContent.replaceChildren(el("p", { class: "muted" }, `Could not load paper: ${err.message}`));
   }
