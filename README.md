@@ -21,6 +21,8 @@ Built for CS593 HW1 using a coding agent (Claude Code). See [`docs/PLAN.md`](doc
 
 ## Architecture
 
+![Architecture: frontend, FastAPI backend, local data and external services](docs/architecture.svg)
+
 ```
 Browser: static/index.html + app.js (vanilla JS; tabs: Search | Library | Paper)
    │ fetch JSON
