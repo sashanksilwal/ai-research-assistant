@@ -115,3 +115,45 @@ M1 search results (my check in my own browser):
 
   **Reported to Anthropic:** I submitted the incident through Claude Code's `/feedback` command (receipt `66a65abe-76a2-43a9-a677-788d79c0d1cd`). To include in the reflection report (Q3).
 - **Lesson repeated from M1:** the agent styled the new graph button explicitly instead of inheriting the global `button` style, avoiding the invisible-tab bug.
+
+## 2026-10-06 → 10-10 · Graph v2, Semantic Scholar, live Gemini, speed
+- **Asked (in order):** "did we finish?"; write the reflection report (as a doc, then `docs/reflection.html`); deploy (I chose Railway over Vercel after the agent pointed out Vercel has no persistent disk for SQLite/PDFs); improve the graph "like Obsidian"; add papers (incl. ones fitting the course syllabus) so the graph has edges; show only top-N labels; suggested search topics; a simple RefSeek-like design; strip references before sending papers to Gemini; "is Gemini not working?"; "can we make it faster?".
+
+### Tests and checks run
+
+| # | What was tested | How | Result |
+|---|---|---|---|
+| 1 | Secrets in git history (T5.2) | `git log -p \| grep -iE "AIza\|api_key="`, `git ls-files \| grep env` | 2 hits, both placeholders (`<your key>` in README, the grep itself in PLAN); only `.env.example` tracked |
+| 2 | Obsidian-style graph UI | `node --check`, curl of served `app.js`/`index.html`, then my own browser check | Worked, but my screenshot showed overlapping labels → added "Labels: top N" + names on hover |
+| 3 | Adding papers via the app's own API | Script: `GET /api/search` → pick exact arXiv id → `POST /api/papers`, 3 s between arXiv calls | 20 papers saved, all `text_status=ready`. Searching the exact titles of "Attention Is All You Need", GPT-3 and Codex did **not** return them in the top 10; adding an author name fixed it |
+| 4 | Citation data, OpenAlex | `/api/graph`, then inspected OpenAlex records directly | 12 edges, 15 of 23 papers unlinked. Root cause: Chain-of-Thought's only record has 0 references, ReAct isn't in OpenAlex search, arXiv-DOI lookups return unrelated papers |
+| 5 | Agent's first fix: pick the OpenAlex record with most references | Re-resolved all papers (DB backed up first) | **Worse: 12 → 10 edges** (other papers cite a different duplicate record). Reverted, DB restored from backup |
+| 6 | Semantic Scholar batch endpoint | One POST for all arXiv ids | 50 arXiv↔arXiv edges found in the probe |
+| 7 | Integrated Semantic Scholar + OpenAlex | `/api/graph` after restart | First load: S2 returned 429 on 4/4 retries (51 s), graph fell back to 12 OpenAlex edges. Next load: **61 edges, 0 unlinked papers, 10 edges into my uploaded BERT/Dropout PDFs** (matched by title) |
+| 8 | Suggested topics | 8 topic queries through `/api/search` | 10 results each, all on-topic |
+| 9 | Reference stripping | Ran `strip_references` on all 23 stored papers + 4 synthetic cases | First version cut **41% of Reflexion, including its appendix** (appendix starts with a bare "A" line). Fixed with year-density + stricter appendix headings: 0–22% cut (~10% avg), appendices kept; errors now only under-cut |
+| 10 | Summary spinner never finished ("is Gemini not working?") | Checked server log + open connections; pinged each model with a 45 s limit | `gemini-3.8-flash` and `gemini-flash-latest` accepted requests and **never answered**; `gemini-3.5-flash` 1.2 s. Our code had no timeout, so it hung forever. Also found the old server process still serving my browser after a restart |
+| 11 | Timeout + fallback logic | Fake Gemini client, 4 scenarios (hang-hang-ok, all hang, all 503, hang-503-503) | All correct: hung models skipped after the limit and not retried; readable error when all fail |
+| 12 | Model speed/quality comparison | Same "Attention" summary on 6 models, 40 s limit | 3.5-flash-lite 2.9 s, flash-lite-latest 2.8 s, 3.5-flash 12.1 s, 3.6-flash 12.2 s (all with WMT/BLEU numbers); 3.7-flash and 3.8-flash timed out |
+| 13 | Q&A on the new default (3.5-flash-lite) | Live calls | "What datasets are used?" 1.3 s, WMT 2014 En-De/En-Fr + WSJ with sizes and Section 5.1; "Who won the 2022 World Cup?" 0.8 s → "The paper doesn't say." |
+
+### Agent mistakes (Q3)
+- **No timeout on LLM calls since M3.** Every earlier live test either succeeded or failed with an error code, so a model that silently hangs was never exercised. Found only because I saw an endless spinner.
+- **A fix that made things worse:** choosing the OpenAlex record with the most references lost edges. The agent measured before/after, reverted, and restored the DB backup it had made beforehand.
+- **Reference stripper dropped a whole appendix** on its first version; caught by measuring the cut on every stored paper rather than one example.
+- **Restart didn't restart:** `pkill` lets uvicorn finish in-flight requests, so the old process kept serving my browser while the agent tested the new one.
+- **Install got stuck:** `brew install railway` hung on Homebrew's auto-update for 5 min; the agent stopped it and used npm.
+
+### Decisions
+- Kept arXiv as the search source (every result has a PDF → full-text summaries), Semantic Scholar only for citations.
+- Kept sending full text to Gemini (requirement 4), minus the reference list.
+- Default model → `gemini-3.5-flash-lite` (speed for the demo; trade-off: summary ran 483 words vs the ~400 asked, and omitted hardware details the larger models gave).
+- Label "Suggested topics", not "Recommended for your library": the list is static, so the stronger label would be false.
+
+## 2026-10-10 · Demo video, math rendering, submission prep
+- **Asked:** "is there a skill that can record the video?", then "give me the script which I will read and then you can edit them together"; later "add PyMuPDF text when I say it", "add text to the video when required", "use Remotion if relevant".
+- **Agent did:** no installed skill could record localhost, so it wrote `scripts/record_demo.py` (Playwright drives the app in headless Chromium against a *copy* of my data on port 8001, with a visible cursor and step captions) and `docs/demo-script.md` (narration per scene). It checked each take by extracting frames and looking at them before showing me.
+- **Problems found in its own takes:** take 1 showed raw LaTeX (`$\rightarrow$`) in the summary and Q&A answers scrolled off-screen. A prompt rule against LaTeX reduced but did not remove it (the lite model still wrote 2 formulas), so it added KaTeX rendering; first KaTeX version showed every formula twice (hidden MathML visible) → switched to HTML-only output, verified with a browser screenshot.
+- **Narration sync:** I read the script in one take (3:16) while watching. The agent couldn't listen, so it transcribed the audio locally (faster-whisper) and found my paragraphs drifted up to ~20 s behind the scenes. It cut the audio at the pauses between paragraphs, re-recorded with each scene as long as its paragraph, and placed each paragraph at its scene's real start (all within 0.4 s). Labels for hard-to-hear terms (PyMuPDF, SQLite, arXiv, Semantic Scholar · OpenAlex, …) are burned in by `scripts/add_terms.py`.
+- **Remotion:** the agent judged it not worth a new React/Node render pipeline on the due date, since ffmpeg covered cutting audio and adding text.
+- **Hand-edits:** 0% of code; I recorded the narration and decided what to show.

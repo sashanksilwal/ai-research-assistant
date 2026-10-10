@@ -7,7 +7,10 @@ CS593 HW1 AI Research Assistant. Plan: `docs/PLAN.md`. Coding-agent log (reflect
 
 - **Never send the user's personal information (email, name, keys) to any external service** — not in URLs, headers, or test requests — unless the user explicitly asks. On 2026-10-02 the agent put the user's email in OpenAlex `mailto=` parameters while probing the API, without asking. Contact details for APIs go only in opt-in `.env` settings the user fills in.
 
+- **Every external call needs a timeout.** On 2026-10-10 two Gemini models accepted requests and never answered; with no timeout the Summarize button spun forever (gap since M3).
+
 ## Workflow rules
+- `pkill` lets uvicorn finish in-flight requests, so an old server can keep serving the browser after a "restart". After restarting, check that exactly one process listens: `lsof -nP -iTCP:8000 -sTCP:LISTEN`.
 - After editing Python, run `.venv/bin/python -c "import app.main"` **before** restarting the server, so syntax errors show up immediately instead of as failed requests.
 - After editing `static/app.js`, run `node --check static/app.js`.
 - The agent's browser automation cannot reach this machine's localhost; the user does visual UI checks. Don't commit a milestone until the user has confirmed the UI.
