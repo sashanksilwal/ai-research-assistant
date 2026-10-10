@@ -148,10 +148,25 @@ async function loadLibrary() {
       el("span", { class: "badge source" }, p.source === "upload" ? "Uploaded PDF" : "arXiv"),
       textBadge(p),
       el("button", { class: "small", onclick: () => openPaper(p.id) }, "Open"),
+      el("button", { class: "small danger", onclick: () => removePaper(p) }, "Remove"),
     ])));
     if (!graphPanel.hidden) loadGraph();  // keep the graph in sync with the library
   } catch (err) {
     libraryStatus.textContent = `Could not load library: ${err.message}`;
+  }
+}
+
+async function removePaper(paper) {
+  if (!confirm(`Remove "${paper.title}" from your library? Its summary and stored PDF are deleted too.`)) return;
+  try {
+    await api(`/api/papers/${paper.id}`, { method: "DELETE" });
+    if (openPaperId === paper.id) {  // don't leave a deleted paper on the Paper tab
+      openPaperId = null;
+      detailContent.replaceChildren(el("p", { class: "muted" }, "Open a paper from the Library to see it here."));
+    }
+    await loadLibrary();
+  } catch (err) {
+    libraryStatus.textContent = `Could not remove paper: ${err.message}`;
   }
 }
 
@@ -389,7 +404,10 @@ function qaSection(paper) {
   return el("section", { class: "card" }, el("h3", {}, "Ask about this paper"), examples, form, history);
 }
 
+let openPaperId = null;  // paper shown on the Paper tab
+
 async function openPaper(id) {
+  openPaperId = id;
   showTab("detail");
   detailContent.replaceChildren(el("p", { class: "muted" }, "Loading…"));
   try {

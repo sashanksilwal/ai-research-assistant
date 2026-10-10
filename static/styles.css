@@ -54,6 +54,8 @@ button:disabled { opacity: .6; cursor: default; }
 
 /* library */
 button.small { padding: 4px 12px; font-size: 13px; }
+button.small.danger { background: var(--card); color: #cf222e; border-color: #d0d7de; }
+button.small.danger:hover { border-color: #cf222e; }
 .badge { padding: 2px 8px; border-radius: 10px; font-size: 12px; }
 .badge.ok { background: #dafbe1; color: #116329; }
 .badge.warn { background: #fff8c5; color: #7d4e00; }

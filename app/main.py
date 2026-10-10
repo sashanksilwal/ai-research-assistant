@@ -2,6 +2,7 @@ import re
 import sqlite3
 import uuid
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI, File, HTTPException, Query, UploadFile
 from fastapi.concurrency import run_in_threadpool
@@ -137,6 +138,19 @@ def get_paper(paper_id: int):
     if not paper:
         raise HTTPException(status_code=404, detail="Paper not found")
     return paper
+
+
+@app.delete("/api/papers/{paper_id}")
+def delete_paper(paper_id: int):
+    """Remove a paper from the library, with its stored PDF. Graph edges to it disappear on the next load."""
+    existed, pdf_path = db.delete_paper(paper_id)
+    if not existed:
+        raise HTTPException(status_code=404, detail="Paper not found")
+    if pdf_path:
+        path = Path(pdf_path).resolve()
+        if path.is_relative_to(PDF_DIR.resolve()):  # only ever delete files inside our PDF folder
+            path.unlink(missing_ok=True)
+    return {"deleted": paper_id}
 
 
 @app.get("/api/papers/{paper_id}/pdf")

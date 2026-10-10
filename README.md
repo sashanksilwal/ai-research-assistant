@@ -14,6 +14,7 @@ Built for CS593 HW1 using a coding agent (Claude Code). See [`docs/PLAN.md`](doc
 | **Save to a local library** | "Save to library" stores the paper in SQLite **and downloads its PDF**, extracting the full text. The library survives page refreshes and server restarts. |
 | **Upload PDFs** | Upload any paper PDF. Gemini extracts the title, authors, year and abstract from the first pages, so it renders like a search result. Falls back to the PDF's embedded metadata if Gemini is unavailable. |
 | **Summarize** | Gemini writes a structured summary (problem, approach, experiments, key results, limitations) from the paper's full text, not just its abstract. The reference list is removed first (appendices are kept). Formulas render with KaTeX. Summaries are cached; "Regenerate" makes a new one. |
+| **Remove papers** | "Remove" on a Library card deletes the paper, its summary and its stored PDF (after a confirmation). |
 | **Ask questions** | Ask anything about a paper, or click one of the example questions. Answers come only from the paper's text; if the paper doesn't say, the answer says so. |
 | **Citation graph** *(extra)* | "Show citation graph" in the Library draws your saved papers as an Obsidian-style graph: an arrow A → B when A cites B, dot size by number of links, hover to highlight a paper's links and see its full title, labels for the top-N papers, title search and an "unlinked papers" toggle. Reference lists come from Semantic Scholar (by arXiv id) and OpenAlex (by title, also covers uploads). Click a node to open the paper. |
 
@@ -98,6 +99,7 @@ Search and the library work without a Gemini key; uploads fall back to the PDF's
 | `POST /api/upload` | Upload a PDF (multipart `file`) |
 | `GET /api/papers` | List the library |
 | `GET /api/papers/{id}` | One paper (metadata, summary, text status) |
+| `DELETE /api/papers/{id}` | Remove a paper and its stored PDF |
 | `GET /api/papers/{id}/pdf` | The stored PDF |
 | `POST /api/papers/{id}/summary[?refresh=true]` | Summarize from full text (cached) |
 | `POST /api/papers/{id}/ask` | Body `{"question": "..."}` → answer from full text |

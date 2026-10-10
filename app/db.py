@@ -84,6 +84,16 @@ def get_pdf_path(paper_id: int) -> str | None:
     return row["pdf_path"] if row else None
 
 
+def delete_paper(paper_id: int) -> tuple[bool, str | None]:
+    """Remove a paper's row; return (whether it existed, its stored PDF path)."""
+    with connect() as conn:
+        row = conn.execute("SELECT pdf_path FROM papers WHERE id = ?", (paper_id,)).fetchone()
+        if not row:
+            return False, None
+        conn.execute("DELETE FROM papers WHERE id = ?", (paper_id,))
+    return True, row["pdf_path"]
+
+
 def insert_paper(**fields) -> int:
     fields["authors"] = json.dumps(fields.get("authors", []))
     cols = ", ".join(fields)
