@@ -49,23 +49,35 @@ async def generate(prompt: str, system: str | None = None, schema: type[BaseMode
 
 
 RETRYABLE = {429, 500, 503, 504}
+# Some models accept a request and then never answer (seen with gemini-3.8-flash on Oct 10); without a
+# limit the request hangs forever. A full-paper summary normally takes 5-20 s.
+MODEL_TIMEOUT_S = 40
 
 
 async def _generate_with_fallback(prompt: str, config: types.GenerateContentConfig):
-    """Try each model in turn on 429/5xx; after a full pass, wait and do one more pass."""
+    """Try each model in turn on 429/5xx or timeout; after a full pass, wait and retry the models that
+    returned errors (not the ones that timed out, so the worst case stays around two minutes)."""
     models = [GEMINI_MODEL, *[m for m in GEMINI_FALLBACK_MODELS if m != GEMINI_MODEL]]
-    last_error = None
+    last_error: LLMError | None = None
     for attempt in range(2):
         if attempt:
+            if not models:
+                break
             await asyncio.sleep(3)
-        for model in models:
+        for model in list(models):
             try:
-                return await _get_client().aio.models.generate_content(model=model, contents=prompt, config=config)
+                return await asyncio.wait_for(
+                    _get_client().aio.models.generate_content(model=model, contents=prompt, config=config),
+                    MODEL_TIMEOUT_S,
+                )
+            except asyncio.TimeoutError:
+                models.remove(model)
+                last_error = LLMError("Gemini did not respond in time. Try again shortly.")
             except errors.APIError as e:
                 if e.code not in RETRYABLE:
                     raise _readable(e) from e
-                last_error = e
-    raise _readable(last_error) from last_error
+                last_error = _readable(e)
+    raise last_error
 
 
 def _readable(e: errors.APIError) -> LLMError:
