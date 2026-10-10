@@ -39,6 +39,8 @@ ADDED_COLUMNS = {
     "openalex_id": "TEXT",
     "openalex_refs": "TEXT",     # JSON list of OpenAlex work ids this paper cites
     "openalex_status": "TEXT",   # NULL = not looked up yet; 'ok' | 'not_found' | 'error'
+    "s2_refs": "TEXT",           # JSON list of {"arxiv", "title"} this paper cites (Semantic Scholar)
+    "s2_status": "TEXT",         # NULL = not looked up yet; 'ok' | 'not_found' | 'error'
 }
 
 
@@ -118,9 +120,28 @@ def set_openalex(paper_id: int, status: str, openalex_id: str | None, refs: list
         )
 
 
+def papers_needing_s2() -> list[dict]:
+    """arXiv papers whose Semantic Scholar references have not been fetched (or last fetch errored)."""
+    with connect() as conn:
+        rows = conn.execute(
+            "SELECT id, external_id FROM papers WHERE external_id IS NOT NULL"
+            " AND (s2_status IS NULL OR s2_status = 'error')"
+        ).fetchall()
+    return [dict(r) for r in rows]
+
+
+def set_s2(paper_id: int, status: str, refs: list[dict]) -> None:
+    with connect() as conn:
+        conn.execute("UPDATE papers SET s2_status = ?, s2_refs = ? WHERE id = ?", (status, json.dumps(refs), paper_id))
+
+
 def papers_for_graph() -> list[dict]:
     with connect() as conn:
         rows = conn.execute(
-            "SELECT id, title, year, source, openalex_id, openalex_refs, openalex_status FROM papers ORDER BY id"
+            "SELECT id, external_id, title, year, source, openalex_id, openalex_refs, openalex_status,"
+            " s2_refs, s2_status FROM papers ORDER BY id"
         ).fetchall()
-    return [{**dict(r), "openalex_refs": json.loads(r["openalex_refs"] or "[]")} for r in rows]
+    return [
+        {**dict(r), "openalex_refs": json.loads(r["openalex_refs"] or "[]"), "s2_refs": json.loads(r["s2_refs"] or "[]")}
+        for r in rows
+    ]

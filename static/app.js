@@ -57,12 +57,27 @@ const searchInput = document.getElementById("search-input");
 const searchStatus = document.getElementById("search-status");
 const searchResults = document.getElementById("search-results");
 
+// Recommended topics under the search bar: keyword phrases (arXiv search matches keywords, not titles).
+const SEARCH_TOPICS = [
+  "LLM agents software engineering",
+  "code generation large language models",
+  "automated program repair",
+  "LLM test generation",
+  "fault localization",
+  "retrieval augmented generation",
+  "chain of thought reasoning",
+  "knowledge distillation",
+];
+document.getElementById("search-topics").append(...SEARCH_TOPICS.map(topic =>
+  el("button", { type: "button", class: "topic-link", onclick: () => { searchInput.value = topic; searchForm.requestSubmit(); } }, topic)));
+
 searchForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   const q = searchInput.value.trim();
   if (!q) return;
   const button = searchForm.querySelector("button");
   button.disabled = true;
+  document.getElementById("search").classList.remove("home");  // compact layout once results show
   searchStatus.textContent = "Searching arXiv…";
   searchResults.replaceChildren();
   try {
@@ -161,36 +176,123 @@ async function loadGraph() {
     graphStatus.textContent = "Graph library failed to load (no internet connection to the CDN?).";
     return;
   }
-  graphStatus.textContent = "Looking up citations on OpenAlex… (first time can take a few seconds per paper)";
+  graphStatus.textContent = "Looking up citations on Semantic Scholar and OpenAlex… (first time can take up to a minute)";
   try {
     const { nodes, edges } = await api("/api/graph");
     const unmatched = nodes.filter(n => !n.matched).length;
     graphStatus.textContent =
       `${nodes.length} papers, ${edges.length} citation link${edges.length === 1 ? "" : "s"} between them. ` +
-      "Arrow A → B means A cites B. Click a paper to open it." +
-      (unmatched ? ` ${unmatched} paper(s) not found on OpenAlex (shown faded).` : "");
+      "Arrow A → B means A cites B. Hover a paper to see its full title and links, click to open it; scroll to zoom." +
+      (unmatched ? ` ${unmatched} paper(s) without citation data (gray).` : "");
 
-    const data = {
-      nodes: nodes.map(n => ({
-        id: n.id,
-        label: `${shortTitle(n.title)}\n${n.year ?? ""}`,
-        title: n.title,  // full title on hover
-        color: n.matched ? undefined : { background: "#eee", border: "#ccc" },
-        font: { color: n.matched ? "#1f2328" : "#999" },
-      })),
-      edges: edges.map(e => ({ from: e.from, to: e.to, arrows: "to" })),
-    };
-    const network = new vis.Network(graphContainer, data, {
-      nodes: { shape: "box", margin: 8, widthConstraint: { maximum: 220 },
-               color: { background: "#ddf4ff", border: "#0969da" } },
-      edges: { color: "#8c959f", smooth: { type: "dynamic" } },
-      physics: { stabilization: true, barnesHut: { springLength: 180 } },
-    });
-    network.on("click", (params) => { if (params.nodes.length) openPaper(params.nodes[0]); });
+    renderGraph(nodes, edges);
   } catch (err) {
     graphStatus.textContent = `Could not build the citation graph: ${err.message}`;
   }
 }
+
+// Obsidian-style graph: dots sized by link count, labels that fade when zoomed out,
+// hover highlights a paper and its direct citations, search highlights by title.
+const graphSearch = document.getElementById("graph-search");
+const graphOrphans = document.getElementById("graph-orphans");
+const graphLabels = document.getElementById("graph-labels");
+try { graphLabels.value = localStorage.getItem("graphLabels") || graphLabels.value; } catch {}
+const GRAPH = {
+  arxiv: "#0969da", upload: "#8250df", unmatched: "#afb8c1",
+  edge: "#c4cad1", edgeOn: "#0969da", label: "#1f2328",
+  faded: 0.12,
+};
+let graph = null;  // { network, nodes, edges, hovered } for the rendered graph
+
+function renderGraph(nodes, edges) {
+  graph?.network.destroy();
+  const degree = new Map(nodes.map(n => [n.id, 0]));
+  edges.forEach(e => {
+    degree.set(e.from, degree.get(e.from) + 1);
+    degree.set(e.to, degree.get(e.to) + 1);
+  });
+  const nodeSet = new vis.DataSet(nodes.map(n => {
+    const c = !n.matched ? GRAPH.unmatched : (GRAPH[n.source] ?? GRAPH.arxiv);
+    return {
+      id: n.id,
+      label: "",  // set by applyGraphFocus: top-N papers, or the hovered paper and its neighbours
+      short: shortTitle(n.title, 32),
+      full: n.year ? `${n.title} (${n.year})` : n.title,
+      value: degree.get(n.id) + 1,
+      degree: degree.get(n.id),
+      search: n.title.toLowerCase(),
+      color: { background: c, border: c, highlight: { background: c, border: GRAPH.label }, hover: { background: c, border: c } },
+    };
+  }));
+  const edgeSet = new vis.DataSet(edges.map(e => ({ id: `${e.from}-${e.to}`, from: e.from, to: e.to })));
+  const network = new vis.Network(graphContainer, { nodes: nodeSet, edges: edgeSet }, {
+    nodes: {
+      shape: "dot", borderWidth: 0,
+      font: { size: 12, color: GRAPH.label, face: "system-ui" },
+      // Labels shrink with zoom and disappear below drawThreshold px, like Obsidian's text fade.
+      scaling: { min: 6, max: 20, label: { enabled: true, min: 12, max: 14, drawThreshold: 8 } },
+    },
+    edges: {
+      color: { color: GRAPH.edge, highlight: GRAPH.edgeOn, hover: GRAPH.edgeOn },
+      arrows: { to: { enabled: true, scaleFactor: 0.4 } },
+      smooth: false, width: 1, selectionWidth: 1,
+    },
+    physics: {
+      solver: "forceAtlas2Based",
+      forceAtlas2Based: { gravitationalConstant: -45, centralGravity: 0.01, springLength: 90, springConstant: 0.06, damping: 0.6 },
+      stabilization: { iterations: 250 },
+    },
+    interaction: { hover: true, tooltipDelay: 300 },
+  });
+  graph = { network, nodes: nodeSet, edges: edgeSet, hovered: null };
+
+  network.once("stabilizationIterationsDone", () => network.fit({ animation: { duration: 400 } }));
+  network.on("click", (params) => { if (params.nodes.length) openPaper(params.nodes[0]); });
+  network.on("hoverNode", ({ node }) => { graph.hovered = node; applyGraphFocus(); });
+  network.on("blurNode", () => { graph.hovered = null; applyGraphFocus(); });
+  applyGraphOrphans();
+  applyGraphFocus();
+}
+
+// Fade everything except the focus: the hovered paper + its neighbours, else search matches.
+// Only focused papers are labelled; with no focus, only the N most-linked papers are.
+function applyGraphFocus() {
+  if (!graph) return;
+  const { network, nodes, edges, hovered } = graph;
+  const term = graphSearch.value.trim().toLowerCase();
+  const limit = graphLabels.value === "all" ? Infinity : Number(graphLabels.value);
+  const top = new Set(nodes.get().sort((a, b) => b.degree - a.degree).slice(0, limit).map(n => n.id));
+  let keepNodes = null, keepEdges = new Set();
+  if (hovered !== null) {
+    keepNodes = new Set([hovered, ...network.getConnectedNodes(hovered)]);
+    keepEdges = new Set(network.getConnectedEdges(hovered));
+  } else if (term) {
+    keepNodes = new Set(nodes.get({ filter: n => n.search.includes(term) }).map(n => n.id));
+  }
+  nodes.update(nodes.get().map(n => {
+    const on = !keepNodes || keepNodes.has(n.id);
+    const labelled = keepNodes ? keepNodes.has(n.id) : top.has(n.id);
+    return { id: n.id, opacity: on ? 1 : GRAPH.faded, label: n.id === hovered ? n.full : labelled ? n.short : "" };
+  }));
+  edges.update(edges.get().map(e => {
+    const lit = keepEdges.has(e.id);
+    const faded = keepNodes && !lit;
+    return { id: e.id, width: lit ? 2 : 1, color: { color: lit ? GRAPH.edgeOn : faded ? "rgba(196, 202, 209, 0.15)" : GRAPH.edge } };
+  }));
+}
+
+function applyGraphOrphans() {
+  if (!graph) return;
+  const show = graphOrphans.checked;
+  graph.nodes.update(graph.nodes.get().map(n => ({ id: n.id, hidden: !show && n.degree === 0 })));
+}
+
+graphSearch.addEventListener("input", applyGraphFocus);
+graphLabels.addEventListener("change", () => {
+  try { localStorage.setItem("graphLabels", graphLabels.value); } catch {}
+  applyGraphFocus();
+});
+graphOrphans.addEventListener("change", applyGraphOrphans);
 
 // ---------- paper detail: summary + Q&A ----------
 const EXAMPLE_QUESTIONS = [
@@ -202,10 +304,24 @@ const EXAMPLE_QUESTIONS = [
 ];
 
 // LLM output is Markdown; render it, but sanitize first. Falls back to plain text if the CDN libs didn't load.
+// LLM output is Markdown that may contain LaTeX ($...$ / $$...$$). Math is pulled out first (Markdown
+// would turn subscript underscores into italics), rendered with KaTeX, and put back after sanitizing.
+const MATH = /\$\$([\s\S]+?)\$\$|\$(?![\s\d])([^$\n]+?)(?<!\s)\$/g;  // "$5 and $10" is not math
+
 function markdown(text) {
   const node = el("div", { class: "markdown" });
-  if (window.marked && window.DOMPurify) node.innerHTML = DOMPurify.sanitize(marked.parse(text));
-  else node.textContent = text;
+  if (!(window.marked && window.DOMPurify)) {
+    node.textContent = text;
+    return node;
+  }
+  const rendered = [];
+  if (window.katex) {
+    text = text.replace(MATH, (_, display, inline) => {
+      rendered.push(katex.renderToString(display ?? inline, { displayMode: display != null, throwOnError: false, output: "html" }));
+      return `KATEXMATH${rendered.length - 1}END`;
+    });
+  }
+  node.innerHTML = DOMPurify.sanitize(marked.parse(text)).replace(/KATEXMATH(\d+)END/g, (_, i) => rendered[i]);
   return node;
 }
 
