@@ -1,0 +1,17 @@
+-r requirements.txt
+
+# Test runner and plugins
+pytest==9.2.0
+pytest-cov==7.1.0
+pytest-randomly==5.0.0
+pytest-socket==0.8.1
+
+# Mutation testing (scripts/hw2_mutation.sh); 2.x because 3.x needs a libcst build
+mutmut==2.5.1
+
+# Browser tests (then run: playwright install chromium)
+playwright==1.64.1
+pytest-playwright==0.10.0
+
+# starlette.testclient is built on httpx2
+httpx2==2.13.1

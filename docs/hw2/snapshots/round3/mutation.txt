@@ -1,0 +1,1292 @@
+module      killed survived timeout other  score
+analysis        59       21       0     0  73.8%
+arxiv           99        5       0     0  95.2%
+citations      126       10       0     0  92.6%
+config          12        6       0     0  66.7%
+db              72        6       0     0  92.3%
+llm             40       13       0     0  75.5%
+main           129       20       0     0  86.6%
+metadata        34       10       0     0  77.3%
+pdf             12        6       0     0  66.7%
+MUTATION SCORE: 583/680 = 85.7% (survived 97, other 0)
+
+===== survivors: analysis
+--- app/analysis.py
++++ app/analysis.py
+@@ -8,7 +8,7 @@
+ MAX_TEXT_CHARS = 300_000
+ 
+ # The page renders Markdown but not LaTeX, so "$\\rightarrow$" would show up literally.
+-PLAIN_MATH = "Do not use LaTeX or $...$ math; write formulas in plain text with Unicode symbols (→, ≤, ×, subscripts as y_0)."
++PLAIN_MATH = "XXDo not use LaTeX or $...$ math; write formulas in plain text with Unicode symbols (→, ≤, ×, subscripts as y_0).XX"
+ 
+ SUMMARY_SYSTEM = (
+     "You are a research assistant helping a graduate student understand a paper. "
+
+
+--- app/analysis.py
++++ app/analysis.py
+@@ -8,7 +8,7 @@
+ MAX_TEXT_CHARS = 300_000
+ 
+ # The page renders Markdown but not LaTeX, so "$\\rightarrow$" would show up literally.
+-PLAIN_MATH = "Do not use LaTeX or $...$ math; write formulas in plain text with Unicode symbols (→, ≤, ×, subscripts as y_0)."
++PLAIN_MATH = None
+ 
+ SUMMARY_SYSTEM = (
+     "You are a research assistant helping a graduate student understand a paper. "
+
+
+--- app/analysis.py
++++ app/analysis.py
+@@ -11,7 +11,7 @@
+ PLAIN_MATH = "Do not use LaTeX or $...$ math; write formulas in plain text with Unicode symbols (→, ≤, ×, subscripts as y_0)."
+ 
+ SUMMARY_SYSTEM = (
+-    "You are a research assistant helping a graduate student understand a paper. "
++    "XXYou are a research assistant helping a graduate student understand a paper. XX"
+     "Base everything on the paper text provided, not on outside knowledge of the paper. "
+     "Be specific: name the method, datasets, metrics, baselines and numbers the paper reports. "
+     + PLAIN_MATH
+
+
+--- app/analysis.py
++++ app/analysis.py
+@@ -12,7 +12,7 @@
+ 
+ SUMMARY_SYSTEM = (
+     "You are a research assistant helping a graduate student understand a paper. "
+-    "Base everything on the paper text provided, not on outside knowledge of the paper. "
++    "XXBase everything on the paper text provided, not on outside knowledge of the paper. XX"
+     "Be specific: name the method, datasets, metrics, baselines and numbers the paper reports. "
+     + PLAIN_MATH
+ )
+
+
+--- app/analysis.py
++++ app/analysis.py
+@@ -13,7 +13,7 @@
+ SUMMARY_SYSTEM = (
+     "You are a research assistant helping a graduate student understand a paper. "
+     "Base everything on the paper text provided, not on outside knowledge of the paper. "
+-    "Be specific: name the method, datasets, metrics, baselines and numbers the paper reports. "
++    "XXBe specific: name the method, datasets, metrics, baselines and numbers the paper reports. XX"
+     + PLAIN_MATH
+ )
+ 
+
+
+--- app/analysis.py
++++ app/analysis.py
+@@ -14,7 +14,7 @@
+     "You are a research assistant helping a graduate student understand a paper. "
+     "Base everything on the paper text provided, not on outside knowledge of the paper. "
+     "Be specific: name the method, datasets, metrics, baselines and numbers the paper reports. "
+-    + PLAIN_MATH
++    - PLAIN_MATH
+ )
+ 
+ SUMMARY_INSTRUCTIONS = """Summarize this paper in Markdown with these sections:
+
+
+--- app/analysis.py
++++ app/analysis.py
+@@ -37,7 +37,7 @@
+ Keep it under about 400 words."""
+ 
+ QA_SYSTEM = (
+-    "You answer questions about one research paper using only the paper text provided. "
++    "XXYou answer questions about one research paper using only the paper text provided. XX"
+     "If the paper does not contain the answer, say so plainly (e.g. \"The paper doesn't say.\") "
+     "instead of guessing or using outside knowledge. Mention the section or table the answer "
+     "comes from when you can. Answer concisely in Markdown. "
+
+
+--- app/analysis.py
++++ app/analysis.py
+@@ -38,7 +38,7 @@
+ 
+ QA_SYSTEM = (
+     "You answer questions about one research paper using only the paper text provided. "
+-    "If the paper does not contain the answer, say so plainly (e.g. \"The paper doesn't say.\") "
++    "XXIf the paper does not contain the answer, say so plainly (e.g. \"The paper doesn't say.\") XX"
+     "instead of guessing or using outside knowledge. Mention the section or table the answer "
+     "comes from when you can. Answer concisely in Markdown. "
+     + PLAIN_MATH
+
+
+--- app/analysis.py
++++ app/analysis.py
+@@ -39,7 +39,7 @@
+ QA_SYSTEM = (
+     "You answer questions about one research paper using only the paper text provided. "
+     "If the paper does not contain the answer, say so plainly (e.g. \"The paper doesn't say.\") "
+-    "instead of guessing or using outside knowledge. Mention the section or table the answer "
++    "XXinstead of guessing or using outside knowledge. Mention the section or table the answer XX"
+     "comes from when you can. Answer concisely in Markdown. "
+     + PLAIN_MATH
+ )
+
+
+--- app/analysis.py
++++ app/analysis.py
+@@ -40,7 +40,7 @@
+     "You answer questions about one research paper using only the paper text provided. "
+     "If the paper does not contain the answer, say so plainly (e.g. \"The paper doesn't say.\") "
+     "instead of guessing or using outside knowledge. Mention the section or table the answer "
+-    "comes from when you can. Answer concisely in Markdown. "
++    "XXcomes from when you can. Answer concisely in Markdown. XX"
+     + PLAIN_MATH
+ )
+ 
+
+
+--- app/analysis.py
++++ app/analysis.py
+@@ -41,7 +41,7 @@
+     "If the paper does not contain the answer, say so plainly (e.g. \"The paper doesn't say.\") "
+     "instead of guessing or using outside knowledge. Mention the section or table the answer "
+     "comes from when you can. Answer concisely in Markdown. "
+-    + PLAIN_MATH
++    - PLAIN_MATH
+ )
+ 
+ 
+
+
+--- app/analysis.py
++++ app/analysis.py
+@@ -51,7 +51,7 @@
+ _YEAR = re.compile(r"\b(?:19|20)\d\d\b")
+ _LINE = re.compile(r"^.*$", re.MULTILINE)
+ # Reference lists have a year every ~150 chars; a longer stretch without one means the list has ended.
+-_YEAR_GAP = 1500
++_YEAR_GAP = 1501
+ 
+ 
+ def _is_appendix_heading(line: str) -> bool:
+
+
+--- app/analysis.py
++++ app/analysis.py
+@@ -66,7 +66,7 @@
+     title = m.group(1)
+     if title is None:
+         return True
+-    return "," not in title and not title.endswith(".") and all(w[0].isupper() or len(w) <= 3 for w in title.split())
++    return "," not in title and not title.endswith(".") and all(w[0].isupper() or len(w) <= 4 for w in title.split())
+ 
+ 
+ def strip_references(text: str) -> str:
+
+
+--- app/analysis.py
++++ app/analysis.py
+@@ -76,7 +76,7 @@
+     early mention never cuts the paper body. The list ends at the first appendix heading or where
+     years stop appearing, whichever comes first.
+     """
+-    heading = next((m for m in _REFERENCES_HEADING.finditer(text) if m.start() >= len(text) * 0.4), None)
++    heading = next((m for m in _REFERENCES_HEADING.finditer(text) if m.start() > len(text) * 0.4), None)
+     if not heading:
+         return text
+     refs_end = heading.end()
+
+
+--- app/analysis.py
++++ app/analysis.py
+@@ -81,7 +81,7 @@
+         return text
+     refs_end = heading.end()
+     for year in _YEAR.finditer(text, heading.end()):
+-        if year.start() - refs_end > _YEAR_GAP:
++        if year.start() - refs_end >= _YEAR_GAP:
+             break
+         refs_end = year.end()
+     # The last entry runs on a little past its year (title, venue); an appendix heading close by marks the end.
+
+
+--- app/analysis.py
++++ app/analysis.py
+@@ -82,7 +82,7 @@
+     refs_end = heading.end()
+     for year in _YEAR.finditer(text, heading.end()):
+         if year.start() - refs_end > _YEAR_GAP:
+-            break
++            continue
+         refs_end = year.end()
+     # The last entry runs on a little past its year (title, venue); an appendix heading close by marks the end.
+     appendix = next(
+
+
+--- app/analysis.py
++++ app/analysis.py
+@@ -86,7 +86,7 @@
+         refs_end = year.end()
+     # The last entry runs on a little past its year (title, venue); an appendix heading close by marks the end.
+     appendix = next(
+-        (line for line in _LINE.finditer(text, heading.end(), min(len(text), refs_end + 600)) if _is_appendix_heading(line.group())),
++        (line for line in _LINE.finditer(text, heading.end(), min(len(text), refs_end + 601)) if _is_appendix_heading(line.group())),
+         None,
+     )
+     if appendix:
+
+
+--- app/analysis.py
++++ app/analysis.py
+@@ -92,7 +92,7 @@
+     if appendix:
+         cut_to = appendix.start()
+     else:
+-        blank = text.find("\n\n", refs_end, refs_end + 400)
++        blank = text.find("\n\n", refs_end, refs_end + 401)
+         cut_to = blank if blank != -1 else refs_end
+     return text[:heading.start()] + "[References omitted]\n" + text[cut_to:]
+ 
+
+
+--- app/analysis.py
++++ app/analysis.py
+@@ -94,7 +94,7 @@
+     else:
+         blank = text.find("\n\n", refs_end, refs_end + 400)
+         cut_to = blank if blank != -1 else refs_end
+-    return text[:heading.start()] + "[References omitted]\n" + text[cut_to:]
++    return text[:heading.start()] + "XX[References omitted]\nXX" + text[cut_to:]
+ 
+ 
+ def _paper_block(text: str) -> tuple[str, bool]:
+
+
+--- app/analysis.py
++++ app/analysis.py
+@@ -100,7 +100,7 @@
+ def _paper_block(text: str) -> tuple[str, bool]:
+     text = strip_references(text)
+     truncated = len(text) > MAX_TEXT_CHARS
+-    return f"<paper>\n{text[:MAX_TEXT_CHARS]}\n</paper>", truncated
++    return f"XX<paper>\n{text[:MAX_TEXT_CHARS]}\n</paper>XX", truncated
+ 
+ 
+ async def summarize(text: str) -> tuple[str, bool]:
+
+
+--- app/analysis.py
++++ app/analysis.py
+@@ -106,7 +106,7 @@
+ async def summarize(text: str) -> tuple[str, bool]:
+     """Return (markdown summary, truncated)."""
+     paper, truncated = _paper_block(text)
+-    summary = await llm.generate(f"{paper}\n\n{SUMMARY_INSTRUCTIONS}", system=SUMMARY_SYSTEM)
++    summary = await llm.generate(f"XX{paper}\n\n{SUMMARY_INSTRUCTIONS}XX", system=SUMMARY_SYSTEM)
+     return summary, truncated
+ 
+ 
+
+
+
+
+===== survivors: arxiv
+--- app/arxiv.py
++++ app/arxiv.py
+@@ -33,7 +33,7 @@
+ 
+ def _parse_entry(entry: ET.Element) -> dict:
+     abs_url = entry.find("a:id", ATOM).text.replace("http://", "https://")
+-    versioned_id = abs_url.rsplit("/abs/", 1)[-1]
++    versioned_id = abs_url.rsplit("/abs/", 2)[-1]
+     pdf_url = next(
+         (l.get("href") for l in entry.findall("a:link", ATOM) if l.get("title") == "pdf"),
+         f"https://arxiv.org/pdf/{versioned_id}",
+
+
+--- app/arxiv.py
++++ app/arxiv.py
+@@ -33,7 +33,7 @@
+ 
+ def _parse_entry(entry: ET.Element) -> dict:
+     abs_url = entry.find("a:id", ATOM).text.replace("http://", "https://")
+-    versioned_id = abs_url.rsplit("/abs/", 1)[-1]
++    versioned_id = abs_url.rsplit("/abs/", 1)[+1]
+     pdf_url = next(
+         (l.get("href") for l in entry.findall("a:link", ATOM) if l.get("title") == "pdf"),
+         f"https://arxiv.org/pdf/{versioned_id}",
+
+
+--- app/arxiv.py
++++ app/arxiv.py
+@@ -55,7 +55,7 @@
+         return []
+     params = {"search_query": query, "max_results": max_results, "sortBy": "relevance"}
+     try:
+-        async with httpx.AsyncClient(timeout=30) as client:
++        async with httpx.AsyncClient(timeout=31) as client:
+             resp = await client.get(API_URL, params=params)
+             resp.raise_for_status()
+     except httpx.HTTPStatusError as e:
+
+
+--- app/arxiv.py
++++ app/arxiv.py
+@@ -59,7 +59,7 @@
+             resp = await client.get(API_URL, params=params)
+             resp.raise_for_status()
+     except httpx.HTTPStatusError as e:
+-        raise ArxivError(f"arXiv returned HTTP {e.response.status_code}; try again in a few seconds.") from e
++        raise ArxivError(f"XXarXiv returned HTTP {e.response.status_code}; try again in a few seconds.XX") from e
+     except httpx.HTTPError as e:
+         raise ArxivError(f"Could not reach arXiv: {e.__class__.__name__}.") from e
+ 
+
+
+--- app/arxiv.py
++++ app/arxiv.py
+@@ -61,7 +61,7 @@
+     except httpx.HTTPStatusError as e:
+         raise ArxivError(f"arXiv returned HTTP {e.response.status_code}; try again in a few seconds.") from e
+     except httpx.HTTPError as e:
+-        raise ArxivError(f"Could not reach arXiv: {e.__class__.__name__}.") from e
++        raise ArxivError(f"XXCould not reach arXiv: {e.__class__.__name__}.XX") from e
+ 
+     entries = ET.fromstring(resp.text).findall("a:entry", ATOM)
+     # arXiv reports query errors as a single entry whose id points at /api/errors.
+
+
+
+
+===== survivors: citations
+--- app/citations.py
++++ app/citations.py
+@@ -27,7 +27,7 @@
+ 
+ async def _lookup(client: httpx.AsyncClient, title: str) -> tuple[str, dict | None]:
+     """Return (status, work) where work has OpenAlex `id` and `referenced_works`."""
+-    params = {"search": title, "select": "id,title,referenced_works", "per-page": 5}
++    params = {"search": title, "select": "id,title,referenced_works", "per-page": 6}
+     if CONTACT_EMAIL:
+         params["mailto"] = CONTACT_EMAIL
+     try:
+
+
+--- app/citations.py
++++ app/citations.py
+@@ -37,7 +37,7 @@
+         return "error", None
+     wanted = _normalize(title)
+     for work in resp.json().get("results", []):
+-        similarity = difflib.SequenceMatcher(None, wanted, _normalize(work.get("title") or "")).ratio()
++        similarity = difflib.SequenceMatcher(None, wanted, _normalize(work.get("title") or "XXXX")).ratio()
+         if similarity >= MIN_TITLE_SIMILARITY:
+             return "ok", work
+     return "not_found", None
+
+
+--- app/citations.py
++++ app/citations.py
+@@ -38,7 +38,7 @@
+     wanted = _normalize(title)
+     for work in resp.json().get("results", []):
+         similarity = difflib.SequenceMatcher(None, wanted, _normalize(work.get("title") or "")).ratio()
+-        if similarity >= MIN_TITLE_SIMILARITY:
++        if similarity > MIN_TITLE_SIMILARITY:
+             return "ok", work
+     return "not_found", None
+ 
+
+
+--- app/citations.py
++++ app/citations.py
+@@ -48,7 +48,7 @@
+     pending = db.papers_needing_openalex()
+     if not pending:
+         return
+-    async with httpx.AsyncClient(timeout=20) as client:
++    async with httpx.AsyncClient(timeout=21) as client:
+         for paper in pending:
+             status, work = await _lookup(client, paper["title"])
+             refs = [r.rsplit("/", 1)[-1] for r in (work or {}).get("referenced_works", [])]
+
+
+--- app/citations.py
++++ app/citations.py
+@@ -51,7 +51,7 @@
+     async with httpx.AsyncClient(timeout=20) as client:
+         for paper in pending:
+             status, work = await _lookup(client, paper["title"])
+-            refs = [r.rsplit("/", 1)[-1] for r in (work or {}).get("referenced_works", [])]
++            refs = [r.rsplit("/", 2)[-1] for r in (work or {}).get("referenced_works", [])]
+             db.set_openalex(paper["id"], status, work["id"].rsplit("/", 1)[-1] if work else None, refs)
+             await asyncio.sleep(0.2)  # stay well under OpenAlex's 10 requests/second
+ 
+
+
+--- app/citations.py
++++ app/citations.py
+@@ -51,7 +51,7 @@
+     async with httpx.AsyncClient(timeout=20) as client:
+         for paper in pending:
+             status, work = await _lookup(client, paper["title"])
+-            refs = [r.rsplit("/", 1)[-1] for r in (work or {}).get("referenced_works", [])]
++            refs = [r.rsplit("/", 1)[+1] for r in (work or {}).get("referenced_works", [])]
+             db.set_openalex(paper["id"], status, work["id"].rsplit("/", 1)[-1] if work else None, refs)
+             await asyncio.sleep(0.2)  # stay well under OpenAlex's 10 requests/second
+ 
+
+
+--- app/citations.py
++++ app/citations.py
+@@ -52,7 +52,7 @@
+         for paper in pending:
+             status, work = await _lookup(client, paper["title"])
+             refs = [r.rsplit("/", 1)[-1] for r in (work or {}).get("referenced_works", [])]
+-            db.set_openalex(paper["id"], status, work["id"].rsplit("/", 1)[-1] if work else None, refs)
++            db.set_openalex(paper["id"], status, work["id"].rsplit("/", 2)[-1] if work else None, refs)
+             await asyncio.sleep(0.2)  # stay well under OpenAlex's 10 requests/second
+ 
+ 
+
+
+--- app/citations.py
++++ app/citations.py
+@@ -52,7 +52,7 @@
+         for paper in pending:
+             status, work = await _lookup(client, paper["title"])
+             refs = [r.rsplit("/", 1)[-1] for r in (work or {}).get("referenced_works", [])]
+-            db.set_openalex(paper["id"], status, work["id"].rsplit("/", 1)[-1] if work else None, refs)
++            db.set_openalex(paper["id"], status, work["id"].rsplit("/", 1)[+1] if work else None, refs)
+             await asyncio.sleep(0.2)  # stay well under OpenAlex's 10 requests/second
+ 
+ 
+
+
+--- app/citations.py
++++ app/citations.py
+@@ -63,7 +63,7 @@
+         return
+     params = {"fields": "references.externalIds,references.title"}
+     body = {"ids": [f"arXiv:{p['external_id']}" for p in pending]}
+-    resp = None
++    resp = ""
+     async with httpx.AsyncClient(timeout=60) as client:
+         for attempt in range(4):  # keyless requests are often rejected with 429 at first; back off and retry
+             try:
+
+
+--- app/citations.py
++++ app/citations.py
+@@ -82,7 +82,7 @@
+             {"arxiv": (ref.get("externalIds") or {}).get("ArXiv"), "title": ref.get("title")}
+             for ref in (work or {}).get("references") or []
+         ]
+-        db.set_s2(paper["id"], "ok" if work else "not_found", refs)
++        db.set_s2(paper["id"], "ok" if work else "XXnot_foundXX", refs)
+ 
+ 
+ async def build_graph() -> dict:
+
+
+
+
+===== survivors: config
+--- app/config.py
++++ app/config.py
+@@ -5,7 +5,7 @@
+ 
+ load_dotenv()
+ 
+-DATA_DIR = Path(os.getenv("DATA_DIR", "data"))
++DATA_DIR = None
+ DB_PATH = DATA_DIR / "app.db"
+ PDF_DIR = DATA_DIR / "pdfs"
+ GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.5-flash-lite")
+
+
+--- app/config.py
++++ app/config.py
+@@ -6,7 +6,7 @@
+ load_dotenv()
+ 
+ DATA_DIR = Path(os.getenv("DATA_DIR", "data"))
+-DB_PATH = DATA_DIR / "app.db"
++DB_PATH = DATA_DIR * "app.db"
+ PDF_DIR = DATA_DIR / "pdfs"
+ GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.5-flash-lite")
+ # Tried in order when the primary model is rate-limited (429) or overloaded (503).
+
+
+--- app/config.py
++++ app/config.py
+@@ -7,7 +7,7 @@
+ 
+ DATA_DIR = Path(os.getenv("DATA_DIR", "data"))
+ DB_PATH = DATA_DIR / "app.db"
+-PDF_DIR = DATA_DIR / "pdfs"
++PDF_DIR = DATA_DIR * "pdfs"
+ GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.5-flash-lite")
+ # Tried in order when the primary model is rate-limited (429) or overloaded (503).
+ GEMINI_FALLBACK_MODELS = [
+
+
+--- app/config.py
++++ app/config.py
+@@ -7,7 +7,7 @@
+ 
+ DATA_DIR = Path(os.getenv("DATA_DIR", "data"))
+ DB_PATH = DATA_DIR / "app.db"
+-PDF_DIR = DATA_DIR / "pdfs"
++PDF_DIR = None
+ GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.5-flash-lite")
+ # Tried in order when the primary model is rate-limited (429) or overloaded (503).
+ GEMINI_FALLBACK_MODELS = [
+
+
+--- app/config.py
++++ app/config.py
+@@ -8,7 +8,7 @@
+ DATA_DIR = Path(os.getenv("DATA_DIR", "data"))
+ DB_PATH = DATA_DIR / "app.db"
+ PDF_DIR = DATA_DIR / "pdfs"
+-GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.5-flash-lite")
++GEMINI_MODEL = os.getenv("GEMINI_MODEL", "XXgemini-3.5-flash-liteXX")
+ # Tried in order when the primary model is rate-limited (429) or overloaded (503).
+ GEMINI_FALLBACK_MODELS = [
+     m.strip() for m in os.getenv("GEMINI_FALLBACK_MODELS", "gemini-3.5-flash,gemini-flash-lite-latest,gemini-3.6-flash").split(",") if m.strip()
+
+
+--- app/config.py
++++ app/config.py
+@@ -11,7 +11,7 @@
+ GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.5-flash-lite")
+ # Tried in order when the primary model is rate-limited (429) or overloaded (503).
+ GEMINI_FALLBACK_MODELS = [
+-    m.strip() for m in os.getenv("GEMINI_FALLBACK_MODELS", "gemini-3.5-flash,gemini-flash-lite-latest,gemini-3.6-flash").split(",") if m.strip()
++    m.strip() for m in os.getenv("GEMINI_FALLBACK_MODELS", "XXgemini-3.5-flash,gemini-flash-lite-latest,gemini-3.6-flashXX").split(",") if m.strip()
+ ]
+ 
+ PDF_DIR.mkdir(parents=True, exist_ok=True)
+
+
+
+
+===== survivors: db
+--- app/db.py
++++ app/db.py
+@@ -36,7 +36,7 @@
+ 
+ # Columns added after the first release; init_db adds any that an existing database lacks.
+ ADDED_COLUMNS = {
+-    "openalex_id": "TEXT",
++    "openalex_id": "XXTEXTXX",
+     "openalex_refs": "TEXT",     # JSON list of OpenAlex work ids this paper cites
+     "openalex_status": "TEXT",   # NULL = not looked up yet; 'ok' | 'not_found' | 'error'
+     "s2_refs": "TEXT",           # JSON list of {"arxiv", "title"} this paper cites (Semantic Scholar)
+
+
+--- app/db.py
++++ app/db.py
+@@ -37,7 +37,7 @@
+ # Columns added after the first release; init_db adds any that an existing database lacks.
+ ADDED_COLUMNS = {
+     "openalex_id": "TEXT",
+-    "openalex_refs": "TEXT",     # JSON list of OpenAlex work ids this paper cites
++    "openalex_refs": "XXTEXTXX",     # JSON list of OpenAlex work ids this paper cites
+     "openalex_status": "TEXT",   # NULL = not looked up yet; 'ok' | 'not_found' | 'error'
+     "s2_refs": "TEXT",           # JSON list of {"arxiv", "title"} this paper cites (Semantic Scholar)
+     "s2_status": "TEXT",         # NULL = not looked up yet; 'ok' | 'not_found' | 'error'
+
+
+--- app/db.py
++++ app/db.py
+@@ -38,7 +38,7 @@
+ ADDED_COLUMNS = {
+     "openalex_id": "TEXT",
+     "openalex_refs": "TEXT",     # JSON list of OpenAlex work ids this paper cites
+-    "openalex_status": "TEXT",   # NULL = not looked up yet; 'ok' | 'not_found' | 'error'
++    "openalex_status": "XXTEXTXX",   # NULL = not looked up yet; 'ok' | 'not_found' | 'error'
+     "s2_refs": "TEXT",           # JSON list of {"arxiv", "title"} this paper cites (Semantic Scholar)
+     "s2_status": "TEXT",         # NULL = not looked up yet; 'ok' | 'not_found' | 'error'
+ }
+
+
+--- app/db.py
++++ app/db.py
+@@ -39,7 +39,7 @@
+     "openalex_id": "TEXT",
+     "openalex_refs": "TEXT",     # JSON list of OpenAlex work ids this paper cites
+     "openalex_status": "TEXT",   # NULL = not looked up yet; 'ok' | 'not_found' | 'error'
+-    "s2_refs": "TEXT",           # JSON list of {"arxiv", "title"} this paper cites (Semantic Scholar)
++    "s2_refs": "XXTEXTXX",           # JSON list of {"arxiv", "title"} this paper cites (Semantic Scholar)
+     "s2_status": "TEXT",         # NULL = not looked up yet; 'ok' | 'not_found' | 'error'
+ }
+ 
+
+
+--- app/db.py
++++ app/db.py
+@@ -40,7 +40,7 @@
+     "openalex_refs": "TEXT",     # JSON list of OpenAlex work ids this paper cites
+     "openalex_status": "TEXT",   # NULL = not looked up yet; 'ok' | 'not_found' | 'error'
+     "s2_refs": "TEXT",           # JSON list of {"arxiv", "title"} this paper cites (Semantic Scholar)
+-    "s2_status": "TEXT",         # NULL = not looked up yet; 'ok' | 'not_found' | 'error'
++    "s2_status": "XXTEXTXX",         # NULL = not looked up yet; 'ok' | 'not_found' | 'error'
+ }
+ 
+ 
+
+
+--- app/db.py
++++ app/db.py
+@@ -152,7 +152,7 @@
+             " s2_refs, s2_status FROM papers ORDER BY id"
+         ).fetchall()
+     return [
+-        {**dict(r), "openalex_refs": json.loads(r["openalex_refs"] or "[]"), "s2_refs": json.loads(r["s2_refs"] or "[]")}
++        {*dict(r), "openalex_refs": json.loads(r["openalex_refs"] or "[]"), "s2_refs": json.loads(r["s2_refs"] or "[]")}
+         for r in rows
+     ]
+ 
+
+
+
+
+===== survivors: llm
+--- app/llm.py
++++ app/llm.py
+@@ -8,7 +8,7 @@
+ 
+ from .config import GEMINI_FALLBACK_MODELS, GEMINI_MODEL
+ 
+-_client: genai.Client | None = None
++_client: genai.Client & None = None
+ 
+ 
+ class LLMError(Exception):
+
+
+--- app/llm.py
++++ app/llm.py
+@@ -21,7 +21,7 @@
+         # Check first: constructing a client without a key leaves a half-built object
+         # whose cleanup logs an AttributeError traceback.
+         if not (os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")):
+-            raise LLMError("GEMINI_API_KEY is not set. Add it to .env and restart the server.")
++            raise LLMError("XXGEMINI_API_KEY is not set. Add it to .env and restart the server.XX")
+         _client = genai.Client()  # reads GEMINI_API_KEY from the environment
+     return _client
+ 
+
+
+--- app/llm.py
++++ app/llm.py
+@@ -41,7 +41,7 @@
+     resp = await _generate_with_fallback(prompt, _config(system, schema))
+     if schema:
+         if resp.parsed is None:
+-            raise LLMError("Gemini returned output that did not match the expected format.")
++            raise LLMError("XXGemini returned output that did not match the expected format.XX")
+         return resp.parsed
+     if not resp.text:
+         raise LLMError("Gemini returned an empty response.")
+
+
+--- app/llm.py
++++ app/llm.py
+@@ -44,7 +44,7 @@
+             raise LLMError("Gemini returned output that did not match the expected format.")
+         return resp.parsed
+     if not resp.text:
+-        raise LLMError("Gemini returned an empty response.")
++        raise LLMError("XXGemini returned an empty response.XX")
+     return resp.text
+ 
+ 
+
+
+--- app/llm.py
++++ app/llm.py
+@@ -57,7 +57,7 @@
+ async def _generate_with_fallback(prompt: str, config: types.GenerateContentConfig):
+     """Try each model in turn on 429/5xx or timeout; after a full pass, wait and retry the models that
+     returned errors (not the ones that timed out, so the worst case stays around two minutes)."""
+-    models = [GEMINI_MODEL, *[m for m in GEMINI_FALLBACK_MODELS if m != GEMINI_MODEL]]
++    models = [GEMINI_MODEL, /[m for m in GEMINI_FALLBACK_MODELS if m != GEMINI_MODEL]]
+     last_error: LLMError | None = None
+     for attempt in range(2):
+         if attempt:
+
+
+--- app/llm.py
++++ app/llm.py
+@@ -58,7 +58,7 @@
+     """Try each model in turn on 429/5xx or timeout; after a full pass, wait and retry the models that
+     returned errors (not the ones that timed out, so the worst case stays around two minutes)."""
+     models = [GEMINI_MODEL, *[m for m in GEMINI_FALLBACK_MODELS if m != GEMINI_MODEL]]
+-    last_error: LLMError | None = None
++    last_error: LLMError & None = None
+     for attempt in range(2):
+         if attempt:
+             if not models:
+
+
+--- app/llm.py
++++ app/llm.py
+@@ -58,7 +58,7 @@
+     """Try each model in turn on 429/5xx or timeout; after a full pass, wait and retry the models that
+     returned errors (not the ones that timed out, so the worst case stays around two minutes)."""
+     models = [GEMINI_MODEL, *[m for m in GEMINI_FALLBACK_MODELS if m != GEMINI_MODEL]]
+-    last_error: LLMError | None = None
++    last_error: LLMError | None = ""
+     for attempt in range(2):
+         if attempt:
+             if not models:
+
+
+--- app/llm.py
++++ app/llm.py
+@@ -62,7 +62,7 @@
+     for attempt in range(2):
+         if attempt:
+             if not models:
+-                break
++                continue
+             await asyncio.sleep(3)
+         for model in list(models):
+             try:
+
+
+--- app/llm.py
++++ app/llm.py
+@@ -72,7 +72,7 @@
+                 )
+             except asyncio.TimeoutError:
+                 models.remove(model)
+-                last_error = LLMError("Gemini did not respond in time. Try again shortly.")
++                last_error = LLMError("XXGemini did not respond in time. Try again shortly.XX")
+             except errors.APIError as e:
+                 if e.code not in RETRYABLE:
+                     raise _readable(e) from e
+
+
+--- app/llm.py
++++ app/llm.py
+@@ -82,7 +82,7 @@
+ 
+ def _readable(e: errors.APIError) -> LLMError:
+     if e.code == 429:
+-        return LLMError("Gemini rate limit or quota reached on all models. Wait a minute and try again.")
++        return LLMError("XXGemini rate limit or quota reached on all models. Wait a minute and try again.XX")
+     if e.code in (500, 503, 504):
+         return LLMError("Gemini is temporarily unavailable (high demand). Try again shortly.")
+     if e.code in (400, 401, 403) and "API key" in str(e.message):
+
+
+--- app/llm.py
++++ app/llm.py
+@@ -84,7 +84,7 @@
+     if e.code == 429:
+         return LLMError("Gemini rate limit or quota reached on all models. Wait a minute and try again.")
+     if e.code in (500, 503, 504):
+-        return LLMError("Gemini is temporarily unavailable (high demand). Try again shortly.")
++        return LLMError("XXGemini is temporarily unavailable (high demand). Try again shortly.XX")
+     if e.code in (400, 401, 403) and "API key" in str(e.message):
+         return LLMError("Gemini rejected the API key. Check GEMINI_API_KEY in .env.")
+     return LLMError(f"Gemini error {e.code}: {e.message}")
+
+
+--- app/llm.py
++++ app/llm.py
+@@ -86,6 +86,6 @@
+     if e.code in (500, 503, 504):
+         return LLMError("Gemini is temporarily unavailable (high demand). Try again shortly.")
+     if e.code in (400, 401, 403) and "API key" in str(e.message):
+-        return LLMError("Gemini rejected the API key. Check GEMINI_API_KEY in .env.")
++        return LLMError("XXGemini rejected the API key. Check GEMINI_API_KEY in .env.XX")
+     return LLMError(f"Gemini error {e.code}: {e.message}")
+ 
+
+
+--- app/llm.py
++++ app/llm.py
+@@ -87,5 +87,5 @@
+         return LLMError("Gemini is temporarily unavailable (high demand). Try again shortly.")
+     if e.code in (400, 401, 403) and "API key" in str(e.message):
+         return LLMError("Gemini rejected the API key. Check GEMINI_API_KEY in .env.")
+-    return LLMError(f"Gemini error {e.code}: {e.message}")
++    return LLMError(f"XXGemini error {e.code}: {e.message}XX")
+ 
+
+
+
+
+===== survivors: main
+--- app/main.py
++++ app/main.py
+@@ -13,8 +13,6 @@
+ from . import analysis, arxiv, citations, db, llm, metadata, pdf
+ from .config import PDF_DIR
+ 
+-
+-@asynccontextmanager
+ async def lifespan(app: FastAPI):
+     db.init_db()
+     yield
+
+
+--- app/main.py
++++ app/main.py
+@@ -20,7 +20,7 @@
+     yield
+ 
+ 
+-app = FastAPI(title="AI Research Assistant", lifespan=lifespan)
++app = FastAPI(title="XXAI Research AssistantXX", lifespan=lifespan)
+ 
+ 
+ class SearchResult(BaseModel):
+
+
+--- app/main.py
++++ app/main.py
+@@ -20,7 +20,7 @@
+     yield
+ 
+ 
+-app = FastAPI(title="AI Research Assistant", lifespan=lifespan)
++app = None
+ 
+ 
+ class SearchResult(BaseModel):
+
+
+--- app/main.py
++++ app/main.py
+@@ -27,7 +27,7 @@
+     external_id: str
+     title: str
+     authors: list[str]
+-    year: int | None = None
++    year: int & None = None
+     abstract: str | None = None
+     url: str | None = None
+     pdf_url: str
+
+
+--- app/main.py
++++ app/main.py
+@@ -28,7 +28,7 @@
+     title: str
+     authors: list[str]
+     year: int | None = None
+-    abstract: str | None = None
++    abstract: str & None = None
+     url: str | None = None
+     pdf_url: str
+ 
+
+
+--- app/main.py
++++ app/main.py
+@@ -29,7 +29,7 @@
+     authors: list[str]
+     year: int | None = None
+     abstract: str | None = None
+-    url: str | None = None
++    url: str & None = None
+     pdf_url: str
+ 
+ 
+
+
+--- app/main.py
++++ app/main.py
+@@ -56,7 +56,7 @@
+     pdf_path, full_text, text_error = None, None, None
+     try:
+         data = await pdf.download(paper.pdf_url)
+-        safe_id = re.sub(r"[^\w.-]", "_", paper.external_id)
++        safe_id = re.sub(r"[^\w.-]", "XX_XX", paper.external_id)
+         pdf_path = PDF_DIR / f"arxiv-{safe_id}.pdf"
+         pdf_path.write_bytes(data)
+         full_text = await run_in_threadpool(pdf.extract_text, data)
+
+
+--- app/main.py
++++ app/main.py
+@@ -78,7 +78,7 @@
+         )
+     except sqlite3.IntegrityError:  # saved concurrently by another request
+         return db.get_by_external_id(paper.external_id)
+-    return {**db.get_paper(paper_id), "text_error": text_error}
++    return {*db.get_paper(paper_id), "text_error": text_error}
+ 
+ 
+ MAX_UPLOAD_BYTES = 50 * 1024 * 1024
+
+
+--- app/main.py
++++ app/main.py
+@@ -91,7 +91,7 @@
+     if not data.startswith(b"%PDF"):
+         raise HTTPException(status_code=400, detail="Please upload a PDF file.")
+     if len(data) > MAX_UPLOAD_BYTES:
+-        raise HTTPException(status_code=413, detail="PDF is larger than 50 MB.")
++        raise HTTPException(status_code=413, detail="XXPDF is larger than 50 MB.XX")
+ 
+     filename = file.filename or "upload.pdf"
+     pdf_path = PDF_DIR / f"upload-{uuid.uuid4().hex}.pdf"
+
+
+--- app/main.py
++++ app/main.py
+@@ -93,7 +93,7 @@
+     if len(data) > MAX_UPLOAD_BYTES:
+         raise HTTPException(status_code=413, detail="PDF is larger than 50 MB.")
+ 
+-    filename = file.filename or "upload.pdf"
++    filename = file.filename or "XXupload.pdfXX"
+     pdf_path = PDF_DIR / f"upload-{uuid.uuid4().hex}.pdf"
+     pdf_path.write_bytes(data)
+ 
+
+
+--- app/main.py
++++ app/main.py
+@@ -106,7 +106,7 @@
+     if full_text:
+         meta, meta_warning = await metadata.extract(full_text, data, filename)
+     else:
+-        meta, meta_warning = metadata.fallback("", data, filename), None
++        meta, meta_warning = metadata.fallback("XXXX", data, filename), None
+ 
+     paper_id = db.insert_paper(
+         source="upload",
+
+
+--- app/main.py
++++ app/main.py
+@@ -118,7 +118,7 @@
+         full_text=full_text,
+         text_status="ready" if full_text else "failed",
+     )
+-    return {**db.get_paper(paper_id), "text_error": text_error, "metadata_warning": meta_warning}
++    return {*db.get_paper(paper_id), "text_error": text_error, "metadata_warning": meta_warning}
+ 
+ 
+ @app.get("/api/papers")
+
+
+--- app/main.py
++++ app/main.py
+@@ -145,7 +145,7 @@
+     """Remove a paper from the library, with its stored PDF. Graph edges to it disappear on the next load."""
+     existed, pdf_path = db.delete_paper(paper_id)
+     if not existed:
+-        raise HTTPException(status_code=404, detail="Paper not found")
++        raise HTTPException(status_code=404, detail="XXPaper not foundXX")
+     if pdf_path:
+         path = Path(pdf_path).resolve()
+         if path.is_relative_to(PDF_DIR.resolve()):  # only ever delete files inside our PDF folder
+
+
+--- app/main.py
++++ app/main.py
+@@ -157,7 +157,7 @@
+ def get_paper_pdf(paper_id: int):
+     path = db.get_pdf_path(paper_id)
+     if not path:
+-        raise HTTPException(status_code=404, detail="No PDF stored for this paper")
++        raise HTTPException(status_code=404, detail="XXNo PDF stored for this paperXX")
+     return FileResponse(path, media_type="application/pdf")
+ 
+ 
+
+
+--- app/main.py
++++ app/main.py
+@@ -164,7 +164,7 @@
+ def _require_full_text(paper_id: int) -> str:
+     paper = db.get_paper(paper_id)
+     if not paper:
+-        raise HTTPException(status_code=404, detail="Paper not found")
++        raise HTTPException(status_code=404, detail="XXPaper not foundXX")
+     text = db.get_full_text(paper_id)
+     if paper["text_status"] != "ready" or not text:
+         raise HTTPException(
+
+
+--- app/main.py
++++ app/main.py
+@@ -169,7 +169,7 @@
+     if paper["text_status"] != "ready" or not text:
+         raise HTTPException(
+             status_code=409,
+-            detail="This paper's full text is unavailable, so it can't be summarized or questioned. "
++            detail="XXThis paper's full text is unavailable, so it can't be summarized or questioned. XX"
+             "Upload the PDF to add the full text.",
+         )
+     return text
+
+
+--- app/main.py
++++ app/main.py
+@@ -170,7 +170,7 @@
+         raise HTTPException(
+             status_code=409,
+             detail="This paper's full text is unavailable, so it can't be summarized or questioned. "
+-            "Upload the PDF to add the full text.",
++            "XXUpload the PDF to add the full text.XX",
+         )
+     return text
+ 
+
+
+--- app/main.py
++++ app/main.py
+@@ -205,5 +205,5 @@
+ 
+ 
+ # Mounted last so /api/* routes take precedence.
+-app.mount("/", StaticFiles(directory="static", html=True), name="static")
+-
++app.mount("XX/XX", StaticFiles(directory="static", html=True), name="static")
++
+
+
+--- app/main.py
++++ app/main.py
+@@ -205,5 +205,5 @@
+ 
+ 
+ # Mounted last so /api/* routes take precedence.
+-app.mount("/", StaticFiles(directory="static", html=True), name="static")
+-
++app.mount("/", StaticFiles(directory="XXstaticXX", html=True), name="static")
++
+
+
+--- app/main.py
++++ app/main.py
+@@ -205,5 +205,5 @@
+ 
+ 
+ # Mounted last so /api/* routes take precedence.
+-app.mount("/", StaticFiles(directory="static", html=True), name="static")
+-
++app.mount("/", StaticFiles(directory="static", html=True), name="XXstaticXX")
++
+
+
+
+
+===== survivors: metadata
+--- app/metadata.py
++++ app/metadata.py
+@@ -8,7 +8,7 @@
+ from . import llm
+ 
+ # Title, authors and abstract are on the first page or two.
+-HEAD_CHARS = 8000
++HEAD_CHARS = 8001
+ 
+ SYSTEM = (
+     "You extract bibliographic metadata from the beginning of a research paper. "
+
+
+--- app/metadata.py
++++ app/metadata.py
+@@ -11,7 +11,7 @@
+ HEAD_CHARS = 8000
+ 
+ SYSTEM = (
+-    "You extract bibliographic metadata from the beginning of a research paper. "
++    "XXYou extract bibliographic metadata from the beginning of a research paper. XX"
+     "Use only what is in the text. Copy the title and abstract verbatim (fix hyphenation "
+     "and line breaks only). Authors are people's names only, without affiliations, emails "
+     "or footnote markers. Year is the publication or submission year if stated "
+
+
+--- app/metadata.py
++++ app/metadata.py
+@@ -12,7 +12,7 @@
+ 
+ SYSTEM = (
+     "You extract bibliographic metadata from the beginning of a research paper. "
+-    "Use only what is in the text. Copy the title and abstract verbatim (fix hyphenation "
++    "XXUse only what is in the text. Copy the title and abstract verbatim (fix hyphenation XX"
+     "and line breaks only). Authors are people's names only, without affiliations, emails "
+     "or footnote markers. Year is the publication or submission year if stated "
+     "(e.g. in a header, footer, copyright line, conference name or arXiv stamp), else null. "
+
+
+--- app/metadata.py
++++ app/metadata.py
+@@ -13,7 +13,7 @@
+ SYSTEM = (
+     "You extract bibliographic metadata from the beginning of a research paper. "
+     "Use only what is in the text. Copy the title and abstract verbatim (fix hyphenation "
+-    "and line breaks only). Authors are people's names only, without affiliations, emails "
++    "XXand line breaks only). Authors are people's names only, without affiliations, emails XX"
+     "or footnote markers. Year is the publication or submission year if stated "
+     "(e.g. in a header, footer, copyright line, conference name or arXiv stamp), else null. "
+     "If there is no abstract section, use null."
+
+
+--- app/metadata.py
++++ app/metadata.py
+@@ -14,7 +14,7 @@
+     "You extract bibliographic metadata from the beginning of a research paper. "
+     "Use only what is in the text. Copy the title and abstract verbatim (fix hyphenation "
+     "and line breaks only). Authors are people's names only, without affiliations, emails "
+-    "or footnote markers. Year is the publication or submission year if stated "
++    "XXor footnote markers. Year is the publication or submission year if stated XX"
+     "(e.g. in a header, footer, copyright line, conference name or arXiv stamp), else null. "
+     "If there is no abstract section, use null."
+ )
+
+
+--- app/metadata.py
++++ app/metadata.py
+@@ -15,7 +15,7 @@
+     "Use only what is in the text. Copy the title and abstract verbatim (fix hyphenation "
+     "and line breaks only). Authors are people's names only, without affiliations, emails "
+     "or footnote markers. Year is the publication or submission year if stated "
+-    "(e.g. in a header, footer, copyright line, conference name or arXiv stamp), else null. "
++    "XX(e.g. in a header, footer, copyright line, conference name or arXiv stamp), else null. XX"
+     "If there is no abstract section, use null."
+ )
+ 
+
+
+--- app/metadata.py
++++ app/metadata.py
+@@ -16,7 +16,7 @@
+     "and line breaks only). Authors are people's names only, without affiliations, emails "
+     "or footnote markers. Year is the publication or submission year if stated "
+     "(e.g. in a header, footer, copyright line, conference name or arXiv stamp), else null. "
+-    "If there is no abstract section, use null."
++    "XXIf there is no abstract section, use null.XX"
+ )
+ 
+ 
+
+
+--- app/metadata.py
++++ app/metadata.py
+@@ -31,7 +31,7 @@
+     """Return (metadata, warning). Falls back to heuristics if Gemini fails."""
+     head = text[:HEAD_CHARS]
+     try:
+-        meta = await llm.generate(f"<paper_start>\n{head}\n</paper_start>", system=SYSTEM, schema=PaperMetadata)
++        meta = await llm.generate(f"XX<paper_start>\n{head}\n</paper_start>XX", system=SYSTEM, schema=PaperMetadata)
+         return meta.model_dump(), None
+     except llm.LLMError as e:
+         return fallback(head, pdf_data, filename), f"Metadata extracted without Gemini ({e})"
+
+
+--- app/metadata.py
++++ app/metadata.py
+@@ -38,7 +38,7 @@
+ 
+ 
+ def fallback(head: str, pdf_data: bytes, filename: str) -> dict:
+-    with pymupdf.open(stream=pdf_data, filetype="pdf") as doc:
++    with pymupdf.open(stream=pdf_data, filetype="XXpdfXX") as doc:
+         info = doc.metadata or {}
+     title = (info.get("title") or "").strip() or Path(filename).stem.replace("_", " ")
+     authors = [a.strip() for a in re.split(r"[;,]| and ", info.get("author") or "") if a.strip()]
+
+
+--- app/metadata.py
++++ app/metadata.py
+@@ -42,7 +42,7 @@
+         info = doc.metadata or {}
+     title = (info.get("title") or "").strip() or Path(filename).stem.replace("_", " ")
+     authors = [a.strip() for a in re.split(r"[;,]| and ", info.get("author") or "") if a.strip()]
+-    year = re.search(r"(19|20)\d{2}", info.get("creationDate") or "")
++    year = re.search(r"(19|20)\d{2}", info.get("creationDate") or "XXXX")
+     head = re.sub(r"(\w)-\n(\w)", r"\1\2", head)  # rejoin words hyphenated across lines
+     abstract = re.search(r"(?is)\babstract\b[\s.:—-]*(.{100,2000}?)(?:\n\s*\n|\b1\.?\s+introduction\b)", head)
+     return {
+
+
+
+
+===== survivors: pdf
+--- app/pdf.py
++++ app/pdf.py
+@@ -3,7 +3,7 @@
+ import pymupdf
+ 
+ # Below this many characters we assume the PDF has no usable text layer (e.g. a scan).
+-MIN_TEXT_CHARS = 500
++MIN_TEXT_CHARS = 501
+ 
+ 
+ class PdfError(Exception):
+
+
+--- app/pdf.py
++++ app/pdf.py
+@@ -16,7 +16,7 @@
+             resp = await client.get(url)
+             resp.raise_for_status()
+     except httpx.HTTPError as e:
+-        raise PdfError(f"PDF download failed: {e.__class__.__name__}") from e
++        raise PdfError(f"XXPDF download failed: {e.__class__.__name__}XX") from e
+     if not resp.content.startswith(b"%PDF"):
+         raise PdfError("Downloaded file is not a PDF")
+     return resp.content
+
+
+--- app/pdf.py
++++ app/pdf.py
+@@ -18,7 +18,7 @@
+     except httpx.HTTPError as e:
+         raise PdfError(f"PDF download failed: {e.__class__.__name__}") from e
+     if not resp.content.startswith(b"%PDF"):
+-        raise PdfError("Downloaded file is not a PDF")
++        raise PdfError("XXDownloaded file is not a PDFXX")
+     return resp.content
+ 
+ 
+
+
+--- app/pdf.py
++++ app/pdf.py
+@@ -25,7 +25,7 @@
+ def extract_text(data: bytes) -> str:
+     """Return the PDF's text, or raise PdfError if it has no usable text layer."""
+     try:
+-        with pymupdf.open(stream=data, filetype="pdf") as doc:
++        with pymupdf.open(stream=data, filetype="XXpdfXX") as doc:
+             text = "\n".join(page.get_text() for page in doc)
+     except Exception as e:  # pymupdf raises several exception types for corrupt files
+         raise PdfError("Could not read PDF") from e
+
+
+--- app/pdf.py
++++ app/pdf.py
+@@ -28,7 +28,7 @@
+         with pymupdf.open(stream=data, filetype="pdf") as doc:
+             text = "\n".join(page.get_text() for page in doc)
+     except Exception as e:  # pymupdf raises several exception types for corrupt files
+-        raise PdfError("Could not read PDF") from e
++        raise PdfError("XXCould not read PDFXX") from e
+     # Some PDFs yield NUL characters; SQLite's length() and text functions stop at the first one.
+     text = text.replace("\x00", "")
+     if len(text.strip()) < MIN_TEXT_CHARS:
+
+
+--- app/pdf.py
++++ app/pdf.py
+@@ -32,6 +32,6 @@
+     # Some PDFs yield NUL characters; SQLite's length() and text functions stop at the first one.
+     text = text.replace("\x00", "")
+     if len(text.strip()) < MIN_TEXT_CHARS:
+-        raise PdfError("PDF has no extractable text (it may be a scanned image)")
++        raise PdfError("XXPDF has no extractable text (it may be a scanned image)XX")
+     return text
+ 
+
+
+

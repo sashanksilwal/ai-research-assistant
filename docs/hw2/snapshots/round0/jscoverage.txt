@@ -1,0 +1,38 @@
+static/app.js covered characters: 94.6%
+lines not fully covered: 36
+15: const body = await res.json().catch(() => null);
+37: abstract.addEventListener("click", () => abstract.classList.toggle("clamped"));
+168: } catch (err) {
+169: libraryStatus.textContent = `Could not remove paper: ${err.message}`;
+170: }
+186: return title.length > max ? title.slice(0, max - 1) + "…" : title;
+199: `${nodes.length} papers, ${edges.length} citation link${edges.length === 1 ? "" : "s"} between them. ` +
+201: (unmatched ? ` ${unmatched} paper(s) without citation data (gray).` : "");
+223: graph?.network.destroy();
+230: const c = !n.matched ? GRAPH.unmatched : (GRAPH[n.source] ?? GRAPH.arxiv);
+235: full: n.year ? `${n.title} (${n.year})` : n.title,
+264: network.once("stabilizationIterationsDone", () => network.fit({ animation: { duration: 400 } }));
+265: network.on("click", (params) => { if (params.nodes.length) openPaper(params.nodes[0]); });
+266: network.on("hoverNode", ({ node }) => { graph.hovered = node; applyGraphFocus(); });
+267: network.on("blurNode", () => { graph.hovered = null; applyGraphFocus(); });
+275: if (!graph) return;
+278: const limit = graphLabels.value === "all" ? Infinity : Number(graphLabels.value);
+281: if (hovered !== null) {
+282: keepNodes = new Set([hovered, ...network.getConnectedNodes(hovered)]);
+283: keepEdges = new Set(network.getConnectedEdges(hovered));
+284: } else if (term) {
+285: keepNodes = new Set(nodes.get({ filter: n => n.search.includes(term) }).map(n => n.id));
+286: }
+288: const on = !keepNodes || keepNodes.has(n.id);
+289: const labelled = keepNodes ? keepNodes.has(n.id) : top.has(n.id);
+290: return { id: n.id, opacity: on ? 1 : GRAPH.faded, label: n.id === hovered ? n.full : labelled ? n.short : "" }
+294: const faded = keepNodes && !lit;
+295: return { id: e.id, width: lit ? 2 : 1, color: { color: lit ? GRAPH.edgeOn : faded ? "rgba(196, 202, 209, 0.15)
+300: if (!graph) return;
+306: graphLabels.addEventListener("change", () => {
+307: try { localStorage.setItem("graphLabels", graphLabels.value); } catch {}
+308: applyGraphFocus();
+309: });
+387: answerNode.replaceWith(markdown(res.answer), ...(res.truncated ? [el("p", { class: "muted" }, TRUNCATED_NOTE)]
+432: if (!file) return;
+441: uploadStatus.textContent = `Added “${paper.title}”.` + (notes.length ? ` Note: ${notes.join(" ")}` : "");

@@ -1,0 +1,50 @@
+...........................................................xx........... [ 20%]
+..........xx.............xxx......x..x...................xx............. [ 41%]
+.x................................................xxxx.................. [ 62%]
+..............x......................................................... [ 83%]
+.........................x..............................                 [100%]
+=============================== warnings summary ===============================
+<frozen importlib._bootstrap>:241
+<frozen importlib._bootstrap>:241
+  <frozen importlib._bootstrap>:241: DeprecationWarning: builtin type SwigPyPacked has no __module__ attribute
+
+<frozen importlib._bootstrap>:241
+<frozen importlib._bootstrap>:241
+  <frozen importlib._bootstrap>:241: DeprecationWarning: builtin type SwigPyObject has no __module__ attribute
+
+<frozen importlib._bootstrap>:241
+  <frozen importlib._bootstrap>:241: DeprecationWarning: builtin type swigvarlink has no __module__ attribute
+
+tests/test_e2e.py::test_page_loads_on_the_search_tab[chromium]
+  <repo>/.venv/lib/python3.11/site-packages/_pytest/fixtures.py:1392: PytestRemovedIn10Warning: Session-scoped fixtures defined as instance methods are deprecated.
+  Instance attributes set in the 'base_url' fixture will NOT be visible to test methods,
+  as each test gets a new instance while the fixture runs only once per class.
+  Use a @classmethod decorator below @pytest.fixture and set attributes on cls instead.
+  See https://docs.pytest.org/en/stable/deprecations.html#class-scoped-fixture-as-instance-method
+    fixturefunc = resolve_fixture_function(fixturedef, request)
+
+tests/test_isolation.py::test_real_socket_to_a_remote_address_is_blocked
+  <repo>/.venv/lib/python3.11/site-packages/pytest_socket/__init__.py:365: UserWarning: A test tried to use socket.socket.connect() with host "203.0.113.1" (allowed: "127.0.0.1,::1").
+    raise SocketConnectBlockedError(allowed_list, host)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+================================ tests coverage ================================
+______________ coverage: platform darwin, python 3.11.16-final-0 _______________
+
+Name               Stmts   Miss Branch BrPart  Cover   Missing
+--------------------------------------------------------------
+app/__init__.py        0      0      0      0   100%
+app/analysis.py       49      0     14      0   100%
+app/arxiv.py          34      0      2      0   100%
+app/citations.py      79      0     34      0   100%
+app/config.py         10      0      0      0   100%
+app/db.py             77      0      6      0   100%
+app/llm.py            55      0     26      0   100%
+app/main.py          133      0     24      0   100%
+app/metadata.py       28      0      0      0   100%
+app/pdf.py            25      0      4      0   100%
+--------------------------------------------------------------
+TOTAL                490      0    110      0   100%
+Coverage JSON written to file <repo>/docs/hw2/snapshots/round1/coverage.json
+326 passed, 18 xfailed, 7 warnings in 35.44s
+sys:1: DeprecationWarning: builtin type swigvarlink has no __module__ attribute

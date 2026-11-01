@@ -1,0 +1,117 @@
+=================================== FAILURES ===================================
+E   AssertionError: assert 500 == 502
+     +  where 500 = <Response [500 Internal Server Error]>.status_code
+     +    where <Response [500 Internal Server Error]> = get('/api/search', params={'q': 'x'})
+     +      where get = <starlette.testclient.TestClient object at 0x1104d22d0>.get
+<repo>/tests/test_api.py:119: AssertionError: assert 500 == 502
+E   AssertionError: assert 500 != 500
+     +  where 500 = <Response [500 Internal Server Error]>.status_code
+     +    where <Response [500 Internal Server Error]> = get('/api/search', params={'q': 'x'})
+     +      where get = <starlette.testclient.TestClient object at 0x1104ef9d0>.get
+<repo>/tests/test_api.py:126: AssertionError: assert 500 != 500
+E   AssertionError: assert 500 != 500
+     +  where 500 = <Response [500 Internal Server Error]>.status_code
+     +    where <Response [500 Internal Server Error]> = post('/api/papers', json={'external_id': '2401.00001', 'title': 'Attention Is All You Need', 'authors': ['A. Author', 'B. Author'], 'year': 2024, ...})
+     +      where post = <starlette.testclient.TestClient object at 0x1104d2a90>.post
+<repo>/tests/test_api.py:241: AssertionError: assert 500 != 500
+E   AssertionError: assert [<Request('GE.../meta-data')>] == []
+      
+      Left contains one more item: <Request('GET', 'http://169.254.169.254/latest/meta-data')>
+      Use -v to get more diff
+<repo>/tests/test_api.py:248: AssertionError: assert [<Request('GE.../meta-data')>] == []
+E   assert 500 in (200, 400)
+     +  where 500 = <Response [500 Internal Server Error]>.status_code
+<repo>/tests/test_api.py:343: assert 500 in (200, 400)
+E   AssertionError: assert [PosixPath('/...c53448d.pdf')] == []
+      
+      Left contains one more item: PosixPath('/private/var/folders/3n/_482f0p155j8f_6ftr9xkzrr0000gn/T/pytest-of-sashank/pytest-103/test_failed_upload_leaves_no_f0/data/pdfs/upload-942ce17a90014e23a2f866d29c53448d.pdf')
+      Use -v to get more diff
+<repo>/tests/test_api.py:350: AssertionError: assert [PosixPath('/...c53448d.pdf')] == []
+E   AssertionError: assert 500 == 200
+     +  where 500 = <Response [500 Internal Server Error]>.status_code
+     +    where <Response [500 Internal Server Error]> = upload(<starlette.testclient.TestClient object at 0x110539c90>, b'%PDF-1.7\n%\xc2\xb5\xc2\xb6\n% Written by MuPDF 1.28.2\n\n1 0 obj\n<</Type/Catalog/Pages 2 0 R/Info<</Producer(MuPDF.../Size 7/Root 1 0 R/ID[<C2ABC3AFC3AFC2B7C2B8C2A2C288C29E><A8A91791789B92BFC160E3069CF114D1>]>>\nstartxref\n736\n%%EOF\n')
+     +      where b'%PDF-1.7\n%\xc2\xb5\xc2\xb6\n% Written by MuPDF 1.28.2\n\n1 0 obj\n<</Type/Catalog/Pages 2 0 R/Info<</Producer(MuPDF.../Size 7/Root 1 0 R/ID[<C2ABC3AFC3AFC2B7C2B8C2A2C288C29E><A8A91791789B92BFC160E3069CF114D1>]>>\nstartxref\n736\n%%EOF\n' = make_pdf()
+<repo>/tests/test_api.py:356: AssertionError: assert 500 == 200
+E   AssertionError: assert 500 == 404
+     +  where 500 = <Response [500 Internal Server Error]>.status_code
+     +    where <Response [500 Internal Server Error]> = get('/api/papers/9223372036854775808')
+     +      where get = <starlette.testclient.TestClient object at 0x110564ed0>.get
+<repo>/tests/test_api.py:400: AssertionError: assert 500 == 404
+E   AssertionError: assert 500 == 404
+     +  where 500 = <Response [500 Internal Server Error]>.status_code
+     +    where <Response [500 Internal Server Error]> = get('/api/papers/1/pdf')
+     +      where get = <starlette.testclient.TestClient object at 0x11053a750>.get
+<repo>/tests/test_api.py:420: AssertionError: assert 500 == 404
+E   assert True == False
+<repo>/tests/test_api.py:580: assert True == False
+E   AssertionError: assert 500 == 503
+     +  where 500 = <Response [500 Internal Server Error]>.status_code
+     +    where <Response [500 Internal Server Error]> = post('/api/papers/1/summary')
+     +      where post = <starlette.testclient.TestClient object at 0x110538550>.post
+<repo>/tests/test_api.py:586: AssertionError: assert 500 == 503
+E   AssertionError: assert 200 == 422
+     +  where 200 = <Response [200 OK]>.status_code
+     +    where <Response [200 OK]> = ask(<starlette.testclient.TestClient object at 0x11057ead0>, 1, '   ')
+     +      where 1 = seed_paper()
+<repo>/tests/test_api.py:656: AssertionError: assert 200 == 422
+E   assert [(1, 2)] == []
+      
+      Left contains one more item: (1, 2)
+      Use -v to get more diff
+<repo>/tests/test_citations.py:262: assert [(1, 2)] == []
+E   AssertionError: assert 'ok' == 'not_found'
+      
+      - not_found
+      + ok
+<repo>/tests/test_citations.py:270: AssertionError: assert 'ok' == 'not_found'
+E   assert 500 == 200
+     +  where 500 = <Response [500 Internal Server Error]>.status_code
+<repo>/tests/test_citations.py:281: assert 500 == 200
+E   assert 500 == 200
+     +  where 500 = <Response [500 Internal Server Error]>.status_code
+<repo>/tests/test_citations.py:281: assert 500 == 200
+E   AssertionError: Locator expected not to contain text '[object Object]'
+    Actual value: Search failed: [object Object] 
+    Call log:
+      - Expect "not_to_contain_text" locator("#search-status") with timeout 500ms
+      - waiting for locator("#search-status")
+        6 × locator resolved to <p class="muted" id="search-status">Search failed: [object Object]</p>
+          - unexpected value "Search failed: [object Object]"
+    
+    Aria snapshot:
+    - paragraph: "Search failed: [object Object]"
+<repo>/tests/test_e2e.py:149: AssertionError: Locator expected not to contain text '[object Object]'
+E   ConnectionError: network unreachable
+<repo>/tests/helpers.py:177: ConnectionError: network unreachable
+<frozen importlib._bootstrap>:241
+<frozen importlib._bootstrap>:241
+<frozen importlib._bootstrap>:241
+<frozen importlib._bootstrap>:241
+<frozen importlib._bootstrap>:241
+tests/test_e2e.py::test_page_loads_on_the_search_tab[chromium]
+  Instance attributes set in the 'base_url' fixture will NOT be visible to test methods,
+  as each test gets a new instance while the fixture runs only once per class.
+  Use a @classmethod decorator below @pytest.fixture and set attributes on cls instead.
+  See https://docs.pytest.org/en/stable/deprecations.html#class-scoped-fixture-as-instance-method
+    fixturefunc = resolve_fixture_function(fixturedef, request)
+tests/test_isolation.py::test_real_socket_to_a_remote_address_is_blocked
+    raise SocketConnectBlockedError(allowed_list, host)
+=========================== short test summary info ============================
+FAILED tests/test_api.py::test_search_malformed_xml_is_a_502 - AssertionError...
+FAILED tests/test_api.py::test_search_incomplete_entry_is_not_a_500 - Asserti...
+FAILED tests/test_api.py::test_save_with_a_malformed_pdf_url_is_not_a_500 - A...
+FAILED tests/test_api.py::test_save_does_not_fetch_arbitrary_hosts - Assertio...
+FAILED tests/test_api.py::test_corrupt_pdf_upload_is_handled - assert 500 in ...
+FAILED tests/test_api.py::test_failed_upload_leaves_no_file - AssertionError:...
+FAILED tests/test_api.py::test_upload_falls_back_when_gemini_is_unreachable
+FAILED tests/test_api.py::test_huge_id_is_not_found - AssertionError: assert ...
+FAILED tests/test_api.py::test_pdf_endpoint_when_the_file_has_vanished - Asse...
+FAILED tests/test_api.py::test_cached_truncation_flag_matches_the_fresh_one
+FAILED tests/test_api.py::test_summarize_when_gemini_is_unreachable_is_a_503
+FAILED tests/test_api.py::test_ask_rejects_a_blank_question - AssertionError:...
+FAILED tests/test_citations.py::test_title_less_reference_does_not_link_to_a_non_latin_title
+FAILED tests/test_citations.py::test_non_latin_title_does_not_match_an_unrelated_openalex_work
+FAILED tests/test_citations.py::test_invalid_json_from_a_citation_service_does_not_break_the_graph[api.openalex.org]
+FAILED tests/test_citations.py::test_invalid_json_from_a_citation_service_does_not_break_the_graph[api.semanticscholar.org]
+FAILED tests/test_e2e.py::test_too_long_search_shows_a_readable_error[chromium]
+FAILED tests/test_llm.py::test_network_failure_becomes_a_readable_error - Con...

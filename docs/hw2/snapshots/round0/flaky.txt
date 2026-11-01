@@ -1,0 +1,5 @@
+seed 1: 329 passed, 18 xfailed, 7 warnings in 27.22s
+seed 2: 329 passed, 18 xfailed, 7 warnings in 26.86s
+seed 3: 329 passed, 18 xfailed, 7 warnings in 27.08s
+seed 4: 329 passed, 18 xfailed, 7 warnings in 27.05s
+seed 5: 329 passed, 18 xfailed, 7 warnings in 26.90s

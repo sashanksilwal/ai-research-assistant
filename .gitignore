@@ -18,3 +18,12 @@ __pycache__/
 # Obsidian vault settings
 .obsidian/
 .vscode/
+
+# Private planning notes
+docs/PLAN-hw2.md
+
+# Test artifacts
+.coverage
+htmlcov/
+.pytest_cache/
+.mutmut-cache

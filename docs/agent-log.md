@@ -157,3 +157,64 @@ M1 search results (my check in my own browser):
 - **Narration sync:** I read the script in one take (3:16) while watching. The agent couldn't listen, so it transcribed the audio locally (faster-whisper) and found my paragraphs drifted up to ~20 s behind the scenes. It cut the audio at the pauses between paragraphs, re-recorded with each scene as long as its paragraph, and placed each paragraph at its scene's real start (all within 0.4 s). Labels for hard-to-hear terms (PyMuPDF, SQLite, arXiv, Semantic Scholar · OpenAlex, …) are burned in by `scripts/add_terms.py`.
 - **Remotion:** the agent judged it not worth a new React/Node render pipeline on the due date, since ffmpeg covered cutting audio and adding text.
 - **Hand-edits:** 0% of code; I recorded the narration and decided what to show.
+
+---
+
+# HW2
+
+Agent: Claude Code (model: Claude Opus 5.5), terminal CLI.
+Plan: [PLAN-hw2.md](PLAN-hw2.md) · Snapshots: `docs/hw2/snapshots/<round>/`
+Same entry format as HW1. Screenshots are named `YYYY-MM-DD-hw2-<topic>.png`.
+
+## 2026-10-31 · Planning
+- **Asked:** read hw2.pdf, then "you know how we did the hw1 can you similarly do it for hw2 logging and keeping snapshots, lets plan it".
+- **Agent did:** read the HW1 plan, this log and the repo; wrote [PLAN-hw2.md](PLAN-hw2.md) with a requirement map, snapshot layout, test labels, round strategies and a draft R0 prompt. Checked that `pytest`, `coverage`, `mutmut` are not installed and that Playwright's Chromium is available from the demo recording work.
+- **Key decision:** generate the initial suite in a fresh session, since this session has already read the HW1 bug history and would leak hints into the baseline.
+- **Problems / corrections:** none yet.
+- **Hand-edits:** 0%.
+
+## 2026-10-31 · M0 Tooling
+- **Asked:** "now lets do the assignment, you prompt yourself and do the assignment but record the prompts and other details required".
+- **Agent did:** `scripts/hw2_snapshot.sh` (refuses to overwrite), `scripts/hw2_mutation.sh`, `scripts/hw2_jscov.py`; dry-ran the first two on a throwaway test.
+- **Problems:** `mutmut` 3 would not install (`libcst` build failed), so it pinned 2.5.1. The first mutation run would have taken hours, so it stopped it and ran one copy per module.
+- **Agent slip:** it named the first snapshot `round0a` by mistake and renamed it to `round0`, editing `meta.json` and `summary.md` by hand. No measured value changed.
+
+## 2026-10-31 · R0 Baseline
+- **Prompt:** verbatim in [round0/prompt.md](hw2/snapshots/round0/prompt.md). A fresh subagent worked in a scratch copy without `docs/` or `CLAUDE.md`.
+- **Result:** 347 cases, 329 passed, 18 xfailed, 0 flaky. Python line and branch coverage 100%, `static/app.js` 94.6%, mutation score **73.8%**. 14 existing app bugs, none fixed. Audit in [round0/triage.md](hw2/snapshots/round0/triage.md).
+- **Main lesson:** 100% coverage hid 178 surviving mutants, including deleting appendix detection outright.
+- **Agent mistake:** the subagent lost 590 s to a stray `cat > /tmp/null` waiting on stdin, and created that file outside its working directory. It reported this and removed the file.
+- **Checked rather than trusted:** the supervising agent reran the suite itself, and confirmed with `--runxfail` that all 18 xfails fail for the stated reason.
+- **Not yet done:** human sample check of the audit.
+- **Hand-edits:** 0%.
+
+## 2026-10-31 · R1 Review and execution feedback
+- **Prompt:** verbatim in [round1/prompt.md](hw2/snapshots/round1/prompt.md). Inputs were the R0 audit and frontend coverage.
+- **Result:** 344 cases (down from 347), 12 removed, 9 added, 17 changed. Frontend coverage 94.6% → 98.7%. Mutation 73.8% → **74.1%**. No new bugs. Audit in [round1/triage.md](hw2/snapshots/round1/triage.md).
+- **Lesson:** cleaning up weak tests improved honesty but hardly moved fault detection. Removing redundant tests cost nothing.
+- **Agent pushback worth keeping:** it pointed out that its new graph tests are partly mirrors, because they still rely on a stub, and that its expected outcomes for 3 bugs are its own judgement.
+- **Hand-edits:** 0%.
+
+## 2026-10-31 · R2 Requirements and real systems
+- **Prompt:** verbatim in [round2/prompt.md](hw2/snapshots/round2/prompt.md).
+- **Result:** 411 cases, 388 passed, 23 xfailed. Five new app bugs (B15–B19), all from real libraries or requirement-driven tests. No browser-library stubs remain.
+- **Agent corrected itself:** a round 1 browser test had been flaky under coverage, though 5 seeds looked clean, and its `networkidle` wait did not do what it had claimed. It also corrected its earlier xfail count (17 functions, not 15).
+- **Prompt injection in an API response:** OpenAlex's `meta.notice` tells AI agents to POST the user's email to `/api-keys`. Neither agent acted on it, and the notice is not from me. The earlier privacy rule in `CLAUDE.md` covers this exact case.
+- **Supervising agent's mistake:** its mutation script deleted `test_e2e.py`, which broke the new traceability test, so the first R2 mutation report was all zeros. The zeros were not reported as a score. Cause confirmed, script fixed, mutation rerun.
+- **Hand-edits:** 0% of tests.
+
+## 2026-10-31 · R3 Mutation feedback
+- **Prompt:** verbatim in [round3/prompt.md](hw2/snapshots/round3/prompt.md).
+- **Result:** 429 cases, 406 passed, 23 xfailed. Mutation 74.6% → **85.7%** by mutmut. No new bugs. Audit in [round3/triage.md](hw2/snapshots/round3/triage.md).
+- **Agent overstated, then measured:** it reported 88.4% from its own patch reruns. The independent mutmut run gave 85.7%; the gap is exactly the 18 mutants it classed as never having run.
+- **Lesson:** mutation feedback moved the score most, but found no bugs. One stopword table gave 32 of 76 kills.
+
+## 2026-10-31 · Final checks
+- **Fresh install:** new folder and venv, only the files that would be pushed, README steps only, no key: 406 passed, 23 xfailed, 100% coverage with Playwright's own Chromium.
+- **Audit:** no keys, email, `.env` or `data/` in files to be pushed. Local home paths in snapshot logs were replaced with `<repo>` or `~`.
+- **Hand-applied edits to evidence:** the OpenAlex `meta.notice` text was replaced in all 3 fixture copies; `round0a` was renamed to `round0`; the R2 mutation report was rerun after a script bug.
+
+## 2026-10-31 · Finalization
+- **Asked:** "verify the work and also finalize with the reflection etc make it ready for submission".
+- **Verified:** app code unchanged from `HEAD`; `tests/` identical to the round3 snapshot; rerun gave 406 passed, 23 xfailed, 100% coverage, with `data/app.db` untouched; every number and test name in the report matched the snapshots.
+- **Report:** the agent wrote all six sections, including the Reflection, at my request, from this log. `docs/hw2/HW2-report.pdf`.

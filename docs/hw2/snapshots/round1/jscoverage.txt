@@ -1,0 +1,16 @@
+static/app.js covered characters: 98.7%
+lines not fully covered: 14
+15: const body = await res.json().catch(() => null);
+223: graph?.network.destroy();
+230: const c = !n.matched ? GRAPH.unmatched : (GRAPH[n.source] ?? GRAPH.arxiv);
+235: full: n.year ? `${n.title} (${n.year})` : n.title,
+264: network.once("stabilizationIterationsDone", () => network.fit({ animation: { duration: 400 } }));
+275: if (!graph) return;
+278: const limit = graphLabels.value === "all" ? Infinity : Number(graphLabels.value);
+300: if (!graph) return;
+306: graphLabels.addEventListener("change", () => {
+307: try { localStorage.setItem("graphLabels", graphLabels.value); } catch {}
+308: applyGraphFocus();
+309: });
+432: if (!file) return;
+441: uploadStatus.textContent = `Added “${paper.title}”.` + (notes.length ? ` Note: ${notes.join(" ")}` : "");

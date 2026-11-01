@@ -1,0 +1,157 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>CS593 HW2 Report</title>
+<style>
+  /* Same look as the HW1 report: Times body, teal sans-serif title, letter page, 1in margins. */
+  :root { --title: #1f5f7a; --rule: #bfbfbf; }
+  * { box-sizing: border-box; }
+  @page { size: letter; margin: 1in; }
+  body { margin: 0; background: #fff; color: #000; font: 16px/1.4 "Times New Roman", Times, serif; }
+  h1 { text-align: center; color: var(--title); font: 400 30px/1.25 Helvetica, Arial, sans-serif; margin: 0 0 28px; }
+  .meta { margin: 0 0 20px; text-align: left; }
+  h2 { font-size: 21px; font-weight: bold; margin: 1.4em 0 0.5em; line-height: 1.25; break-after: avoid; }
+  h3 { font-size: 16px; font-weight: bold; margin: 1.3em 0 0.4em; break-after: avoid; }
+  p { margin: 0 0 0.9em; text-align: justify; }
+  ol, ul { margin: 0 0 0.9em; padding-left: 2.2em; }
+  li { margin: 0.2em 0; text-align: justify; }
+  code { font-family: "Courier New", Courier, monospace; font-size: 0.88em; overflow-wrap: anywhere; }
+  table { width: calc(100% - 2px); border-collapse: collapse; margin: 0.8em 0 1em; font-size: 14px; }
+  th, td { border: 1px solid #000; padding: 5px 8px; text-align: left; vertical-align: top; }
+  th { font-weight: bold; }
+  tr { break-inside: avoid; }
+  td.n, th.n { text-align: right; }
+  blockquote { margin: 0.6em 0 1em; padding: 0 0 0 1.2em; border-left: 2px solid var(--rule); font-style: italic; }
+  figure { margin: 1em 0 1.2em; text-align: center; break-inside: avoid; }
+  figure img { max-width: 100%; max-height: 4in; height: auto; }
+  figcaption { font-style: italic; font-size: 14px; color: #444; margin-top: 4px; }
+  blockquote code { font-style: normal; }
+</style></head><body>
+<h1>Homework 2</h1>
+<p class="meta"><strong>Name:</strong> Sashank Silwal<br>
+<strong>Date:</strong> October 31, 2026<br>
+<strong>Repository:</strong> <a href="https://github.com/sashanksilwal/ai-research-assistant">https://github.com/sashanksilwal/ai-research-assistant</a><br>
+<strong>Topic:</strong> Test Generation and Improvement Using Coding Agents</p>
+
+
+<h2>1. Test Generation Approach</h2>
+<p>The application is a FastAPI backend (490 Python statements) with a vanilla JavaScript frontend. It searches arXiv, saves papers to SQLite, handles PDF uploads, uses Gemini for summaries and Q&amp;A, and draws a citation graph.</p>
+<p>A fresh Claude Code subagent generated the initial suite. To keep the baseline clean it worked in a copy of the repository without <code>docs/</code>, <code>CLAUDE.md</code> or the HW1 bug log. The core prompt was:</p>
+<blockquote>Examine this repository and write an automated test suite for the web application. Cover its main functionality, including normal use cases, edge cases and error handling. Use a testing framework appropriate for the stack, and make sure the tests are executable and contain assertions that check expected behavior. Put tests in <code>tests/</code> and dev dependencies in <code>requirements-dev.txt</code>. Tests must not call any real external service or use the real <code>data/</code> directory or <code>.env</code>. Do not change application code. Run the tests and report the results.</blockquote>
+<p>The agent chose pytest, FastAPI's TestClient and Playwright, and produced 347 test cases:</p>
+<table><tr><th>Type</th><th class="n">Cases</th><th>Functionality targeted</th></tr>
+<tr><td>HTTP API</td><td class="n">117</td><td>Search, save, upload, library, delete, summary, Q&amp;A, graph route</td></tr>
+<tr><td>Browser (Playwright)</td><td class="n">46</td><td>User flows in the real frontend against the real backend</td></tr>
+<tr><td>Unit: analysis, arXiv, citations, LLM client</td><td class="n">126</td><td>Reference stripping, query building, graph logic, retries and timeouts</td></tr>
+<tr><td>Unit: database, metadata, PDF, config</td><td class="n">53</td><td>Storage, fallback metadata, text extraction</td></tr>
+<tr><td>Test isolation guards</td><td class="n">5</td><td>No real network, keys or data</td></tr></table>
+<p><strong>Baseline caveat.</strong> This baseline is stronger than a one-shot generation. Measurement tools were already installed in the environment, and the agent ran its own 40-fault check and closed 4 gaps before reporting, without being asked.</p>
+
+<h2>2. Initial Test Evaluation</h2>
+<table><tr><th>Measure</th><th>Result</th></tr>
+<tr><td>Execution</td><td>347 cases: 329 passed, 18 strict xfail (known app bugs), 0 failed</td></tr>
+<tr><td>Python coverage</td><td>100% line, 100% branch (490 statements, 110 branches)</td></tr>
+<tr><td>Frontend coverage</td><td>94.6% of <code>static/app.js</code> characters, measured in Chromium</td></tr>
+<tr><td>Flakiness</td><td>0 across 5 random-order seeds</td></tr>
+<tr><td>Mutation score (added measure)</td><td>73.8%: 502 of 680 mutants killed, 178 survived</td></tr></table>
+<p>Coverage showed almost nothing to improve, while mutation testing did. Survivors included deleting appendix detection outright from the reference stripper, a code path every test executed but no test checked closely.</p>
+<figure><img src="../screenshots/2026-11-01-hw2-r0-result.png" alt="Figure 1. Round 0 results: 100% coverage, but 178 mutants survived."><figcaption>Figure 1. Round 0 results: 100% coverage, but 178 mutants survived.</figcaption></figure>
+<h3>Incorrect tests, weak assertions and gaps</h3>
+<p>The audit used the HW1 requirements as the oracle, not the current code. All 18 xfails were rerun with <code>--runxfail</code> and failed for their stated reasons.</p>
+<ul><li><strong>Incorrect tests:</strong> 0 wrong inputs or expected values.</li>
+<li><strong>Weak (13):</strong> for example, <code>!= 500</code> checks, status-only checks, and an assertion inside an <code>if</code> that could pass vacuously.</li>
+<li><strong>Mirror (7):</strong> tests that restated a constant, or ran against hand-written stubs of DOMPurify, KaTeX and vis-network, so they tested the stub.</li>
+<li><strong>Redundant (9):</strong> the same behavior tested twice.</li>
+<li><strong>Missed:</strong> real browser libraries, graph interaction, any check that the fakes match real services, requirement traceability, and realistic multi-page PDFs.</li></ul>
+<h3>Bugs detected by the initial suite (14; existing bugs, not fixed)</h3>
+<table><tr><th>ID</th><th>Sev.</th><th>Incorrect behavior</th><th>Detecting test</th></tr>
+<tr><td>B1</td><td>High</td><td>Corrupt file starting with <code>%PDF</code> returns 500 on upload</td><td><code>test_corrupt_pdf_upload_is_handled</code></td></tr>
+<tr><td>B2</td><td>Low</td><td>That failed upload leaves an orphan PDF</td><td><code>test_failed_upload_leaves_no_file</code></td></tr>
+<tr><td>B3</td><td>High</td><td>Network failure reaching Gemini gives a 500, and the documented upload fallback never runs</td><td><code>test_summarize_when_gemini_is_unreachable_is_a_503</code> and 2 others</td></tr>
+<tr><td>B4</td><td>Med</td><td>Malformed arXiv XML gives 500, not 502</td><td><code>test_search_malformed_xml_is_a_502</code></td></tr>
+<tr><td>B5</td><td>Med</td><td>One incomplete arXiv entry fails the whole search</td><td><code>test_search_skips_an_incomplete_entry</code></td></tr>
+<tr><td>B6</td><td>Med</td><td>Query over 200 characters shows "[object Object]"</td><td><code>test_too_long_search_shows_a_readable_error</code></td></tr>
+<tr><td>B7</td><td>Low</td><td>A <code>pdf_url</code> with an invalid port gives 500</td><td><code>test_save_with_a_malformed_pdf_url_is_saved_without_text</code></td></tr>
+<tr><td>B8</td><td>Med</td><td>Security: server fetches a client-supplied URL from any host (SSRF)</td><td><code>test_save_does_not_fetch_arbitrary_hosts</code></td></tr>
+<tr><td>B9</td><td>Low</td><td>Paper id of 2^63 or more gives 500, not 404</td><td><code>test_huge_id_is_not_found</code></td></tr>
+<tr><td>B10</td><td>Med</td><td>PDF route gives 500 when the stored file is gone</td><td><code>test_pdf_endpoint_when_the_file_has_vanished</code></td></tr>
+<tr><td>B11</td><td>Med</td><td>Non-JSON 200 from a citation service crashes the graph</td><td><code>test_invalid_json_from_a_citation_service_does_not_break_the_graph</code></td></tr>
+<tr><td>B12</td><td>Med</td><td>Non-Latin titles normalize to empty, giving false citation links</td><td><code>test_non_latin_title_does_not_match_an_unrelated_openalex_work</code> and 1 other</td></tr>
+<tr><td>B13</td><td>Low</td><td>Whitespace-only question reaches Gemini</td><td><code>test_ask_rejects_a_blank_question</code></td></tr>
+<tr><td>B14</td><td>Low</td><td>Cached and fresh <code>truncated</code> flags can differ</td><td><code>test_cached_truncation_flag_matches_the_fresh_one</code></td></tr></table>
+<p>Bugs are marked <code>xfail(strict=True)</code> rather than fixed, so the suite stays green and any fix makes its test fail until the marker is removed. All failures in the initial suite were application bugs. None were caused by incorrect tests.</p>
+
+<figure><img src="../screenshots/2026-11-01-hw2-r0-bugs.png" alt="Figure 2. The real failures behind the round 0 xfail markers."><figcaption>Figure 2. The real failures behind the round 0 xfail markers.</figcaption></figure>
+<h2>3. Iterative Test Improvement</h2>
+<p>Each round added one kind of input and held the others back, so its effect could be measured. The plan was changed after R0: with coverage already at 100%, coverage feedback alone would have added nothing, so mutation feedback became a required third round.</p>
+<h3>Round 1: review and execution feedback</h3>
+<p><strong>Input:</strong> the audit, Chromium coverage of <code>app.js</code>, and the last test run.</p>
+<blockquote>Strengthen every test labelled WEAK so it checks the resulting behavior or state, not just a status code or <code>!= 500</code>. Remove any assertion that can pass vacuously. Remove or merge the REDUNDANT tests, unless you can name the distinct behavior a test protects.</blockquote>
+<p><strong>Changes:</strong> 12 tests removed, 9 browser tests added for graph behavior and missed paths, and 13 weak tests strengthened. The agent pointed out unprompted that its new graph tests were still partly mirrors, because they relied on a stub.</p>
+<h3>Round 2: requirements and real systems</h3>
+<p><strong>Input:</strong> the R1–R5 requirement table, 10 real failures from HW1, real recorded arXiv, OpenAlex and Semantic Scholar responses, and the exact CDN library builds.</p>
+<blockquote>Compare your hand-written fakes with the real shapes and fix any that differ. Replace stub-based tests with real-library tests wherever that is possible: DOMPurify must actually remove XSS from model output, and KaTeX must render math exactly once. [...] If a real library or a real response exposes a new app bug, that is the most valuable outcome.</blockquote>
+<p><strong>Changes:</strong> contract tests against recordings; all browser-library stubs replaced with the real libraries; a real restart test that kills the server process; generated multi-page PDFs; a regression test for each past failure; and <code>tests/REQUIREMENTS.md</code>, a traceability table checked by a test. The recordings disproved one assumption in both the fake and the app's own comment: a bad arXiv query returns an empty feed, not an error entry. This round found 5 new bugs.</p>
+<h3>Round 3: mutation feedback</h3>
+<p><strong>Input:</strong> diffs of the 173 surviving mutants.</p>
+<blockquote>Classify every survivor [Logic, Boundary, Wording/data, Equivalent]. Do not write tests that assert exact prompts or constants merely to raise the score. Prefer one strong test that kills many mutants to many narrow tests.</blockquote>
+<p><strong>Changes:</strong> 15 test functions added and several limit tests rewritten to use documented values instead of reading the app's constants. The agent also found that its fake transport accepted invalid URL schemes, and fixed it. Its classification is in <code>tests/MUTATION_NOTES.md</code>.</p>
+<figure><img src="../screenshots/2026-11-01-hw2-r3-score.png" alt="Figure 3. A key instruction from round 3 and the final measurements."><figcaption>Figure 3. A key instruction from round 3 and the final measurements.</figcaption></figure>
+<h3>Significant manual interventions</h3>
+<p>No test code was edited by hand; the agents wrote all of it. Prompts, feedback and audits came from a supervising Claude Code session at my direction, including the instruction that the agent prompt itself. Three evidence changes were applied by that session and are logged: a snapshot was renamed, an all-zero mutation report caused by a script bug was rerun, and a notice addressed to AI agents was removed from the recorded OpenAlex fixture.</p>
+
+<h2>4. Final Evaluation</h2>
+<table><tr><th>Measure</th><th class="n">R0</th><th class="n">R1</th><th class="n">R2</th><th class="n">R3 (final)</th></tr>
+<tr><td>Test cases</td><td class="n">347</td><td class="n">344</td><td class="n">411</td><td class="n">429</td></tr>
+<tr><td>Passed / strict xfail / failed</td><td class="n">329 / 18 / 0</td><td class="n">326 / 18 / 0</td><td class="n">388 / 23 / 0</td><td class="n">406 / 23 / 0</td></tr>
+<tr><td>Python line and branch coverage</td><td class="n">100%</td><td class="n">100%</td><td class="n">100%</td><td class="n">100%</td></tr>
+<tr><td>Frontend coverage</td><td class="n">94.6%</td><td class="n">98.7%</td><td class="n">99.0%</td><td class="n">99.0%</td></tr>
+<tr><td><strong>Mutation score</strong></td><td class="n">73.8%</td><td class="n">74.1%</td><td class="n">74.6%</td><td class="n"><strong>85.7%</strong></td></tr>
+<tr><td>App bugs found (cumulative)</td><td class="n">14</td><td class="n">14</td><td class="n">19</td><td class="n">19</td></tr>
+<tr><td>Weak / mirror / redundant tests</td><td class="n">13 / 7 / 9</td><td class="n">0 / 10 / 0</td><td class="n">0 / 0 / 0</td><td class="n">0 / 1 / 0</td></tr>
+<tr><td>Incorrect tests / flaky across 5 seeds</td><td class="n">0 / 0</td><td class="n">0 / 0</td><td class="n">0 / 0</td><td class="n">0 / 0</td></tr></table>
+<table><tr><th>Mutation by module</th><th class="n">analysis</th><th class="n">arxiv</th><th class="n">citations</th><th class="n">config</th><th class="n">db</th><th class="n">llm</th><th class="n">main</th><th class="n">metadata</th><th class="n">pdf</th></tr>
+<tr><td>R0</td><td class="n">60.0</td><td class="n">57.7</td><td class="n">82.4</td><td class="n">55.6</td><td class="n">92.3</td><td class="n">69.8</td><td class="n">81.2</td><td class="n">75.0</td><td class="n">50.0</td></tr>
+<tr><td>Final</td><td class="n">73.8</td><td class="n">95.2</td><td class="n">92.6</td><td class="n">66.7</td><td class="n">92.3</td><td class="n">75.5</td><td class="n">86.6</td><td class="n">77.3</td><td class="n">66.7</td></tr></table>
+<h3>New bugs in the final suite</h3>
+<table><tr><th>ID</th><th>Sev.</th><th>Incorrect behavior</th><th>Detecting test</th></tr>
+<tr><td>B15</td><td>Med</td><td>Math is restored after DOMPurify, so math inside an HTML attribute corrupts the sanitized DOM. XSS was not demonstrated in Chromium.</td><td><code>test_math_inside_an_attribute_stays_inside_it</code></td></tr>
+<tr><td>B16</td><td>Low</td><td>Model text containing <code>KATEXMATH99END</code> renders as "undefined"</td><td><code>test_text_resembling_the_math_placeholder_is_kept</code></td></tr>
+<tr><td>B17</td><td>Low</td><td><code>$x$</code> in a code span renders as a formula</td><td><code>test_code_span_is_shown_verbatim</code></td></tr>
+<tr><td>B18</td><td>Med</td><td>A wrapped author line is read as an appendix heading, so the rest of the reference list reaches the prompt. Reproduced separately outside the test suite.</td><td><code>test_r4_wrapped_author_line_does_not_end_the_reference_list</code></td></tr>
+<tr><td>B19</td><td>Low</td><td>Hyphenation repair misses a trailing space before the line break</td><td><code>test_failure_8_hyphenation_with_a_trailing_space_is_removed</code></td></tr></table>
+<h3>What worked and what did not</h3>
+<ul><li><strong>Most effective for bugs: R2.</strong> All 5 new bugs came from real libraries, real-shaped documents or requirement-driven tests. Mutation score rose only 0.5 points in this round, because the score does not measure this kind of gain.</li>
+<li><strong>Most effective for the score: R3,</strong> up 11.1 points, but with no new bugs. One stopword table gave 32 of the 76 kills, so about 42% of the gain is data rather than logic.</li>
+<li><strong>Useful but limited: R1.</strong> Test quality improved and redundant tests were removed with no loss of detection, but mutation score rose only 0.3 points.</li>
+<li><strong>Not effective: coverage as a target.</strong> It stayed at 100% throughout, so it could not tell any two rounds apart.</li>
+<li><strong>Weak check: 5 random seeds.</strong> A flaky R1 test passed all 5 and was caught only later, under coverage.</li></ul>
+<p>The agent's own score for R3 was 88.4%, from rerunning each diff. It found that 18 reported survivors are syntax errors or import crashes. The independent mutmut run gave 85.7%, and the gap is exactly those 18. This report uses 85.7% because every round was measured the same way.</p>
+<p><strong>Remaining limits.</strong> Whether real Gemini answers stay grounded in the paper (R5) and how well it extracts metadata (R3) cannot be tested without the real model. Mutation does not cover <code>static/app.js</code>. A further 79 mutants were left alone: 26 equivalent, 41 wording or data, and 12 undocumented boundaries.</p>
+
+<h2>5. Reflection</h2>
+<h3>How well did the coding agent understand my application?</h3>
+<p>It understood the code very well. I kept the HW1 plan and bug log away from it, yet its first suite already tested stopword queries, NUL characters, appendix stripping and models that hang. It got there by reading the code and its comments. It also found 14 real bugs I didn't know about, such as the 500 on a corrupt upload.</p>
+<p>Its understanding came from the code, though, so it also picked up the code's assumptions. The clearest example is the arXiv error case. My code comment says a bad query returns an error entry, so the agent's fake returned one and the test passed. The real recording showed an empty feed with HTTP 200. Reading the code told it what the app expects, and only real data could show whether that was true.</p>
+<h3>What types of tests did it generate well, and where did it struggle?</h3>
+<p>It was strong on API tests, error handling, input edge cases and test isolation. Isolation mattered most to me after the HW1 privacy mistake: no test touched real services, my <code>.env</code> or my data, and my <code>data/app.db</code> stayed unchanged. It found no case of a wrong expected value in its own tests, and the audit found none either.</p>
+<p>It struggled in four places:</p>
+<ul><li><strong>Fakes.</strong> In the first suite, the tests for DOMPurify, KaTeX and vis-network ran against stubs the agent wrote itself, so they mostly tested the stubs.</li>
+<li><strong>Timing in browser tests.</strong> One round 1 test was flaky, and a <code>networkidle</code> wait it described as a fix did not work. It found both problems itself in round 2.</li>
+<li><strong>Depth of assertions.</strong> It reached 100% coverage while 178 of 680 injected faults went unnoticed.</li>
+<li><strong>Judging its own work.</strong> It reported 88.4% for round 3 from its own reruns, and mutmut measured 85.7%. The gap had an honest explanation, but I would not have known without a separate measurement. It also lost 590 seconds to a stray <code>cat</code> command waiting on input.</li></ul>
+<h3>How useful were additional context and execution feedback?</h3>
+<p>Very useful, but each kind helped in a different way, and I didn't expect that. The audit in round 1 made the tests cleaner, yet the mutation score only moved from 73.8% to 74.1%. Requirements and real data in round 2 found all 5 new bugs, while the score moved just 0.5 points. Mutation feedback in round 3 gave the biggest jump, to 85.7%, and found no bugs at all. If I had looked only at the score, round 2 would have seemed pointless, and it was the most valuable round.</p>
+<p>Coverage feedback was the least useful, because it was already 100% after the first attempt. I changed the plan for this reason and made mutation feedback a required round.</p>
+<h3>What did I learn about strengths and limitations?</h3>
+<p>Agents can write a large, well-organized test suite quickly, and they find real bugs by reading code carefully. I got more out of them by giving specific feedback than by asking for more tests. The instruction "do not assert exact prompts just to raise the score" mattered, because raising the number is easy: one stopword table gave 32 of round 3's 76 kills.</p>
+<p>The main limit is that a passing test only proves what the test was built to check. High coverage, green runs and even a mutation score can all look good while the tests rest on wrong assumptions. Real responses and real libraries caught what the agent couldn't see from the code. Tests also can't tell me whether real Gemini answers stay grounded in the paper, so that part still needs a person or a live evaluation.</p>
+<p>I also learned to measure the agent separately from what it reports. The supervising session made its own mistake too: a script bug produced an all-zero mutation report, which it caught and reran. Agent output needs checking at every level, including the agent doing the checking. The audits here were done by the agent, and I did not check a sample by hand, so they are less independent than I would like.</p>
+<p>One new risk came up as well. An OpenAlex API response contained a notice telling AI agents to send the user's email to get an API key. After the email mistake in HW1, this stood out to me. Neither agent acted on it, but it showed me that text coming back from a tool can try to direct an agent, so rules like the one in my <code>CLAUDE.md</code> are worth having.</p>
+<h2>6. GitHub Repository</h2>
+<p><strong>Repository:</strong> <a href="https://github.com/sashanksilwal/ai-research-assistant">https://github.com/sashanksilwal/ai-research-assistant</a><br>
+<strong>Final test suite:</strong> <code>tests/</code>. Requirement traceability: <code>tests/REQUIREMENTS.md</code>. Per-round evidence: <code>docs/hw2/snapshots/</code>. The README's Testing section has the full instructions.</p>
+<table><tr><th>Step</th><th>Command</th></tr>
+<tr><td>Install</td><td><code>python3.11 -m venv .venv &amp;&amp; source .venv/bin/activate</code><br><code>pip install -r requirements-dev.txt &amp;&amp; playwright install chromium</code></td></tr>
+<tr><td>Run tests</td><td><code>pytest tests</code></td></tr>
+<tr><td>Coverage</td><td><code>pytest tests --cov=app --cov-branch --cov-report=term-missing</code></td></tr>
+<tr><td>All measurements</td><td><code>scripts/hw2_snapshot.sh &lt;new-round-name&gt; --mutation</code></td></tr></table>
+<p>These steps were verified in a fresh virtual environment with only the files to be pushed and no API key: 406 passed, 23 xfailed, 100% coverage.</p>
+</body></html>
